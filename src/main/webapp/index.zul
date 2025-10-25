@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zk>
+
+	<window id="tasksTabWindow" border="none" height="100%" width="100%" style="background:#242526; color:#fff;" apply="pt.axxiv.mariatasks.controllers.MainController">
+	<script src="custom-date-labels*.js" ></script>
+		<div sclass="main-container">
+			
+			<!-- Sidebar -->
+			<div id="sidebar" sclass="sidebar collapsed">
+				<button id="btToggleMenu" sclass="menu-btn" iconSclass="z-icon-bars"/>
+				<vlayout id="menuItems" sclass="menu-items">
+<!-- 					<button id="btDeleteBD" sclass="menu-item" iconSclass="z-icon-image"/> -->
+				</vlayout>
+				<button id="btAddSection" sclass="floating-btn" iconSclass="z-icon-plus" popup="ppAddSection, position=before_start" />
+			</div>
+
+			<!-- Task Section -->
+			<vlayout id="taskSection" sclass="task-section" vflex="1">
+				<hlayout sclass="task-header">
+					<label id="lbSectionTitle" sclass="section-title"/>
+					<button id="btCreatTask" sclass="add-btn" iconSclass="z-icon-plus"/>
+				</hlayout>
+				<vlayout id="taskList" sclass="task-list"/>
+			</vlayout>
+
+			<!-- Add Task Form (outside, right side) -->
+			<vlayout id="addTaskForm" sclass="add-task-form">
+			    <textbox id="txTitle" placeholder="Task Title"/>
+			    <textbox id="txNotes" placeholder="Task Notes" multiline="true" rows="3"/>
+			    <hbox>
+			    	<timebox id="tbTime" format="HH:mm"/>
+			    	<button id="btClearTime" sclass="clear-btn" iconSclass="z-icon-trash"/>
+			    </hbox>
+			    <combobox id="cbFormat" readonly="true"/>
+			    
+			    <vlayout id="layoutForFrequency" visible="false" sclass="extra-fields">
+			    	<intbox id="ibPeriod" placeholder="Periodo"/>
+			    	<separator/>
+			    	<combobox id="cbFrequency" readonly="true"/>
+			    </vlayout>
+			    	
+			    <vlayout id="layoutForDate" visible="false" sclass="extra-fields">
+			    	<datebox id="dbSelectedDate"/>
+			    </vlayout>
+			   
+		        <button id="btSaveNewTask" sclass="save-btn" iconSclass="z-icon-check"/>
+			</vlayout>
+	
+		</div>
+		<timer id="myTimer" delay="1000" repeats="true"/>
+		
+		<popup id="ppAddSection" sclass="add-section" width="300px">
+		    <textbox id="txSection" placeholder="Section Title"/>
+		    <separator />
+	        <button id="btSaveNewSection" sclass="save-btn" iconSclass="z-icon-check"/>
+		</popup>
+	</window>
+</zk>

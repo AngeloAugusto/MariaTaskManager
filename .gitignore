@@ -1,0 +1,11 @@
+# secrets / local env
+.env
+*.local
+credentials.properties
+
+# IDE
+.vscode/
+.idea/
+*.iml
+target/
+*.class
