@@ -8,7 +8,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
-import pt.axxiv.mariatasks.connection.MongoDBConnection;
+import pt.axxiv.mariatasks.connection.MongoDBConnectionOffline;
 import pt.axxiv.mariatasks.connection.labels.TaskFields;
 import pt.axxiv.mariatasks.data.FrequencyTypes;
 import pt.axxiv.mariatasks.data.Section;
@@ -32,7 +32,7 @@ public class TaskDAO {
 	private final MongoCollection<Document> collection;
 
 	public TaskDAO() {
-		MongoDatabase db = MongoDBConnection.getDatabase();
+		MongoDatabase db = MongoDBConnectionOffline.getDatabase();
         this.collection = db.getCollection(TaskFields.TASK_COLLECTION);
 	}
 	

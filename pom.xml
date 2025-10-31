@@ -1,141 +1,177 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<groupId>pt.axxiv</groupId>
-	<artifactId>mariatasks</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<properties>
-    <!-- Set the Java version to 25 -->
-	    <maven.compiler.source>21</maven.compiler.source>
-	    <maven.compiler.target>21</maven.compiler.target>
-	    <maven.compiler.release>21</maven.compiler.release> <!-- Optional, for Maven 3.9+ -->
-	    <zk.version>9.6.0</zk.version>
-	    <commons-io>2.6</commons-io>
-	    <maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
-	    <packname>-${project.version}-FL-${maven.build.timestamp}</packname>
-	</properties>
-	<packaging>war</packaging>
-	<name>The mariatasks Project</name>
-	<description>The mariatasks Project</description>
-	<licenses>
-		<license>
-			<name>GNU LESSER GENERAL PUBLIC LICENSE, Version 3</name>
-			<url>https://www.gnu.org/licenses/lgpl.html</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
-	<repositories>
-		<repository>
-			<id>ZK CE</id>
-			<name>ZK CE Repository</name>
-			<url>https://mavensync.zkoss.org/maven2</url>
-		</repository>
-		<repository>
-			<id>ZK EVAL</id>
-      		<name>ZK Evaluation Repository</name>
-			<url>https://mavensync.zkoss.org/eval</url>
-		</repository>
-	</repositories>
-	<pluginRepositories>
-		<pluginRepository>
-			<id>zkmaven</id>
-			<name>ZK Maven Plugin Repository</name>
-			<url>https://mavensync.zkoss.org/maven2/</url>
-		</pluginRepository>
-	</pluginRepositories>
-	<dependencies>
-		<dependency>
-			<groupId>org.zkoss.zk</groupId>
-			<artifactId>zkbind</artifactId>
-			<version>${zk.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.zkoss.zk</groupId>
-			<artifactId>zul</artifactId>
-			<version>${zk.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.zkoss.zk</groupId>
-			<artifactId>zkplus</artifactId>
-			<version>${zk.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.zkoss.zk</groupId>
-			<artifactId>zhtml</artifactId>
-			<version>${zk.version}</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>${commons-io}</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.mongodb/mongodb-driver-sync -->
-		<dependency>
-		    <groupId>org.mongodb</groupId>
-		    <artifactId>mongodb-driver-sync</artifactId>
-		    <version>5.5.1</version>
-		</dependency>
-		<dependency>
-		    <groupId>io.github.cdimascio</groupId>
-		    <artifactId>dotenv-java</artifactId>
-		    <version>3.0.0</version>
-		</dependency>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	</dependencies>
-	<build>
-		<finalName>${project.artifactId}</finalName>
-		<plugins>
-			<!-- Run with Jetty -->
-			<plugin>
-				<groupId>org.eclipse.jetty</groupId>
-				<artifactId>jetty-maven-plugin</artifactId>
-				<version>10.0.5</version>
-				<configuration>
-					<webApp>
-						<contextPath>/${project.artifactId}</contextPath>
-						<allowDuplicateFragmentNames>true</allowDuplicateFragmentNames>
-					</webApp>
-					<scanIntervalSeconds>5</scanIntervalSeconds>
-				</configuration>
-			</plugin>
-			<!-- Compile java -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.11.0</version>
-				<configuration>
-					<source>11</source>
-					<target>11</target>
-				</configuration>
-			</plugin>
-			<!-- Build war -->
-			<plugin>
-				<artifactId>maven-war-plugin</artifactId>
-				<groupId>org.apache.maven.plugins</groupId>
-				 <version>3.4.0</version>
-			</plugin>
-			<!-- Pack zips -->
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.2</version>
-				<executions>
-					<execution>
-						<id>webapp</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<finalName>mariatasks${packname}</finalName>
-							<appendAssemblyId>false</appendAssemblyId>
-							<descriptors>
-								<descriptor>src/main/assembly/webapp.xml</descriptor>
-							</descriptors>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+    <groupId>pt.axxiv</groupId>
+    <artifactId>mariatasks</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>war</packaging>
+
+    <name>The mariatasks Project</name>
+    <description>The mariatasks Project</description>
+
+    <licenses>
+        <license>
+            <name>GNU LESSER GENERAL PUBLIC LICENSE, Version 3</name>
+            <url>https://www.gnu.org/licenses/lgpl.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <properties>
+        <!-- Java 17 compatibility -->
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>21</maven.compiler.release>
+
+        <!-- Dependency versions -->
+        <zk.version>9.6.0</zk.version>
+        <commons-io.version>2.16.1</commons-io.version> <!-- Updated to latest -->
+        <mongodb.driver.version>5.5.1</mongodb.driver.version>
+        <dotenv.version>3.0.0</dotenv.version>
+
+        <!-- Build metadata -->
+        <maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
+        <packname>-${project.version}-FL-${maven.build.timestamp}</packname>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>ZK CE</id>
+            <name>ZK CE Repository</name>
+            <url>https://mavensync.zkoss.org/maven2</url>
+        </repository>
+        <repository>
+            <id>ZK EVAL</id>
+            <name>ZK Evaluation Repository</name>
+            <url>https://mavensync.zkoss.org/eval</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>zkmaven</id>
+            <name>ZK Maven Plugin Repository</name>
+            <url>https://mavensync.zkoss.org/maven2/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <dependencies>
+        <!-- ZK Framework -->
+        <dependency>
+            <groupId>org.zkoss.zk</groupId>
+            <artifactId>zkbind</artifactId>
+            <version>${zk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.zkoss.zk</groupId>
+            <artifactId>zul</artifactId>
+            <version>${zk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.zkoss.zk</groupId>
+            <artifactId>zkplus</artifactId>
+            <version>${zk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.zkoss.zk</groupId>
+            <artifactId>zhtml</artifactId>
+            <version>${zk.version}</version>
+        </dependency>
+
+        <!-- Commons IO -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons-io.version}</version>
+        </dependency>
+
+        <!-- MongoDB Driver -->
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
+            <version>${mongodb.driver.version}</version>
+        </dependency>
+
+        <!-- dotenv for environment variables -->
+        <dependency>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>dotenv-java</artifactId>
+            <version>${dotenv.version}</version>
+        </dependency>
+        
+        <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-war-plugin -->
+		<dependency>
+		    <groupId>org.apache.maven.plugins</groupId>
+		    <artifactId>maven-war-plugin</artifactId>
+		    <version>3.5.0</version>
+		</dependency>
+    </dependencies>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <!-- Jetty for development -->
+            <plugin>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-maven-plugin</artifactId>
+                <version>12.0.9</version> <!-- Updated to Jetty 12 (Java 17 compatible) -->
+                <configuration>
+                    <webApp>
+                        <contextPath>/${project.artifactId}</contextPath>
+                        <allowDuplicateFragmentNames>true</allowDuplicateFragmentNames>
+                    </webApp>
+                    <scanIntervalSeconds>5</scanIntervalSeconds>
+                </configuration>
+            </plugin>
+
+            <!-- Java compiler -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.12.0</version>
+                <configuration>
+					<encoding>UTF-8</encoding>
+                    <source>21</source>
+                    <target>21</target>
+                    <release>21</release>
+                    <!-- <compilerArgument>-Xlint:all</compilerArgument> -->
+                    <showWarnings>true</showWarnings>
+                    <showDeprecation>true</showDeprecation>
+                </configuration>
+            </plugin>
+
+            <!-- WAR packaging -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.4.0</version>
+            </plugin>
+
+            <!-- ZIP assembly -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.6.0</version> <!-- Updated -->
+                <executions>
+                    <execution>
+                        <id>webapp</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>mariatasks${packname}</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <descriptors>
+                                <descriptor>src/main/assembly/webapp.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

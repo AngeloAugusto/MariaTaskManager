@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zk>
+
+	<window id="tasksTabWindow" border="none" height="100%" width="100%" style="background:#242526; color:#fff;" apply="pt.axxiv.mariatasks.controllers.LoginController">
+	<script src="custom-date-labels*.js" ></script>
+<!-- 		<div sclass="main-container"> -->
+			<vlayout sclass="extra-fields" width="270px">
+				<textbox id="tbUsername"/>
+				<textbox id="tbPassword" type="password"/>
+				<button id="btLogin" sclass="save-btn" iconSclass="z-icon-save"/>
+			</vlayout>
+<!-- 		</div> -->
+	</window>
+</zk>

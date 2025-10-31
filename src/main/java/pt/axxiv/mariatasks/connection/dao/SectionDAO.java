@@ -7,7 +7,7 @@ import org.bson.types.ObjectId;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
-import pt.axxiv.mariatasks.connection.MongoDBConnection;
+import pt.axxiv.mariatasks.connection.MongoDBConnectionOffline;
 import pt.axxiv.mariatasks.connection.labels.SectionFields;
 import pt.axxiv.mariatasks.data.Section;
 import static com.mongodb.client.model.Filters.eq;
@@ -18,7 +18,7 @@ public class SectionDAO {
 	private final MongoCollection<Document> collection;
 
 	public SectionDAO() {
-		MongoDatabase db = MongoDBConnection.getDatabase();
+		MongoDatabase db = MongoDBConnectionOffline.getDatabase();
         this.collection = db.getCollection(SectionFields.COLLECTION);
 	}
 	

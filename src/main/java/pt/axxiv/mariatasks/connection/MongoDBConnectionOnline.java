@@ -12,12 +12,12 @@ import com.mongodb.client.MongoDatabase;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
-public class MongoDBConnection {
+public class MongoDBConnectionOnline {
     private static final String DATABASE_NAME = "mariaDB";
 
     private static MongoClient mongoClient = null;
 
-    private MongoDBConnection() {}
+    private MongoDBConnectionOnline() {}
 
     public static MongoDatabase getDatabase() {
         if (mongoClient == null) {
