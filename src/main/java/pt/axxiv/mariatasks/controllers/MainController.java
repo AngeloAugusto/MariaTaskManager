@@ -1,11 +1,15 @@
 package pt.axxiv.mariatasks.controllers;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.select.SelectorComposer;
 import org.zkoss.zk.ui.select.annotation.Listen;
@@ -17,7 +21,6 @@ import org.zkoss.zul.Div;
 import org.zkoss.zul.Intbox;
 import org.zkoss.zul.Label;
 import org.zkoss.zul.ListModelList;
-import org.zkoss.zul.ListModelMap;
 import org.zkoss.zul.Popup;
 import org.zkoss.zul.Textbox;
 import org.zkoss.zul.Timebox;
@@ -33,6 +36,7 @@ import pt.axxiv.mariatasks.data.FrequencyTypes;
 import pt.axxiv.mariatasks.data.Section;
 import pt.axxiv.mariatasks.data.Task;
 import pt.axxiv.mariatasks.data.TaskCustom;
+import pt.axxiv.mariatasks.data.TaskDaily;
 import pt.axxiv.mariatasks.data.TaskDate;
 import pt.axxiv.mariatasks.data.TaskFormat;
 import pt.axxiv.mariatasks.data.TaskOnce;
@@ -82,9 +86,12 @@ public class MainController extends SelectorComposer<Window> {
 	private List<Section> sections = new ArrayList<Section>();
 	private Map<Section, List<Task>> tasksMap = new HashMap<Section, List<Task>>();
 	private ListModelList<FrequencyTypes> frequencyFormatListModelList;
+	private ListModelList<TaskFormat> taskFormatListModelList ;
 
 	private boolean showSectionTitle = false;
 	private Section selectedSection;
+	
+	private Task editingTask = null;
 	
 	@Override
 	public void doAfterCompose(Window comp) throws Exception {
@@ -108,7 +115,7 @@ public class MainController extends SelectorComposer<Window> {
 			addTaskToMap(t);
 		}
 		
-		ListModelList<TaskFormat> taskFormatListModelList = new ListModelList<TaskFormat>(TaskFormat.values());
+		taskFormatListModelList = new ListModelList<TaskFormat>(TaskFormat.values());
 		cbFormat.setModel(taskFormatListModelList);
 		
 		frequencyFormatListModelList = new ListModelList<FrequencyTypes>(FrequencyTypes.values());
@@ -154,6 +161,51 @@ public class MainController extends SelectorComposer<Window> {
 	            notes.setStyle("font-size: 12px; color: gray; margin-top: 2px;");
 	            textContainer.appendChild(notes);
 	        }
+	        
+	        row.addEventListener("onClick", e ->{
+	        	if(editingTask == null || editingTask != t) {
+	        		openNewTaskWindow();
+		        	editingTask = t;
+	        	} else if(t == editingTask) {
+	        		closeNewTaskWindow();
+	        		editingTask = null;
+	        		return;
+	        	}else {
+	        		System.out.println("NOW WHAT???");
+	        		return;
+	        	}
+	        	
+		        
+		        txTitle.setValue(editingTask.getTitle());
+		        txNotes.setValue(editingTask.getNotes());
+		        
+		        if(editingTask.getTimeOfTheDay()!=null)
+		        	tbTime.setValue(localTimeToDate(editingTask.getTimeOfTheDay()));
+		       
+		        if(editingTask instanceof TaskOnce) {
+		        	taskFormatListModelList.addToSelection(TaskFormat.ONCE);
+		        	
+		        	onSelectDefaultOnTaskFormat();
+		        	
+		        }else if(editingTask instanceof TaskDaily) {
+		        	taskFormatListModelList.addToSelection(TaskFormat.EVERY_DAY);
+		        	
+		        	onSelectDefaultOnTaskFormat();
+		        	
+		        }else if(editingTask instanceof TaskCustom tCostum) {
+		        	taskFormatListModelList.addToSelection(TaskFormat.FREQUENCY);
+		        	ibPeriod.setValue(tCostum.getPeriod());
+		        	frequencyFormatListModelList.addToSelection(tCostum.getFrequencyTypes());
+
+					onSelectFrequencyOnTaskFormat();
+					
+		        } else if(editingTask instanceof TaskDate tDate) {
+		        	taskFormatListModelList.addToSelection(TaskFormat.DATE);
+		        	dbSelectedDate.setValue(tDate.getSelectedDate());
+		        	
+		        	onSelectDateOnTaskFormat();
+		        } 
+	        });
 
 	        row.appendChild(textContainer);
 
@@ -210,18 +262,31 @@ public class MainController extends SelectorComposer<Window> {
 
 	@Listen("onClick = #btToggleMenu")
 	public void onClickbtToggleMenu(Event e) {
-		boolean collapsed = sidebar.getSclass().contains("collapsed");
-		if (collapsed) {
-	        // Expand sidebar
-	        sidebar.setSclass("sidebar open");
-	        showSectionTitle = true;
-	    } else {
-	        // Collapse sidebar
-	        sidebar.setSclass("sidebar collapsed");
-	        showSectionTitle = false;
-	    }
+		toggleSectionMenu();
         generateSectionList();
 	}
+	
+	private void toggleSectionMenu() {
+		boolean collapsed = sidebar.getSclass().contains("collapsed");
+		if (collapsed) {
+			expandSectionMenu();
+	    } else {
+	    	collapseSectionMenu();
+	    }
+	}
+
+	private void collapseSectionMenu() {
+        // Collapse sidebar
+        sidebar.setSclass("sidebar collapsed");
+        showSectionTitle = false;
+	}
+
+	private void expandSectionMenu() {
+        // Expand sidebar
+        sidebar.setSclass("sidebar open");
+        showSectionTitle = true;
+	}
+	
 
 	@Listen("onClick = #teste")
 	public void onClickbtDeleteBD(Event e) {
@@ -241,16 +306,16 @@ public class MainController extends SelectorComposer<Window> {
 
 	@Listen("onClick = #btCreatTask")
 	public void onClickbtCreatTask(Event e) {
+		clearNewTaskWindow();
+		toggleNewTaskWindow();
+	}
+	
+	private void toggleNewTaskWindow() {
 	    String sclass = addTaskForm.getSclass();
 	    if (sclass.contains("open")) {
-	        addTaskForm.setSclass("add-task-form"); // slide out
-	        taskSection.setSclass("task-section");
-	        btCreatTask.setSclass("add-btn");
+	    	closeNewTaskWindow();
 	    } else {
-	        addTaskForm.setSclass("add-task-form open"); // slide in
-	        taskSection.setSclass("task-section retracted");
-	        btCreatTask.setSclass("add-btn rotate");
-	        txTitle.setFocus(true);
+	    	openNewTaskWindow();
 	    }
 	}
 
@@ -261,6 +326,12 @@ public class MainController extends SelectorComposer<Window> {
 		TaskFormat selectedFormat = (TaskFormat) cbFormat.getSelectedItem().getValue();
 		
 		Task task = TaskFactory.createTask(selectedFormat, title, notes, selectedSection.getId());
+		
+		if(editingTask != null) {
+			task.setId(editingTask.getId());
+			task.setStartDate(editingTask.getStartDate());
+			editingTask = null;
+		}
 		
 		if(task instanceof TaskCustom ) {
 			((TaskCustom) task).setPeriod(ibPeriod.getValue());
@@ -276,20 +347,38 @@ public class MainController extends SelectorComposer<Window> {
 		new TaskDAO().insert(task);
 		addTaskToMap(task);
 		
-	    txTitle.setValue("");
+    	closeNewTaskWindow();
+		
+		generateTaskList();
+	}
+	
+	private void clearNewTaskWindow() {
+		txTitle.setValue("");
 	    txNotes.setValue("");
-	    cbFormat.setSelectedIndex(0);
+	    taskFormatListModelList.addToSelection(TaskFormat.ONCE);
 	    tbTime.setValue(null);
+
+		onSelectDefaultOnTaskFormat();
 	    
-    	layoutForDate.setVisible(false);
-    	layoutForFrequency.setVisible(false);	
-	    
+	    clearDateFields();
+	    clearFrequencyFields();
+	}
+	
+	private void openNewTaskWindow() {
+        addTaskForm.setSclass("add-task-form open"); // slide in
+        taskSection.setSclass("task-section retracted");
+        btCreatTask.setSclass("add-btn rotate");
+        txTitle.setFocus(true);
+	}
+	
+	private void closeNewTaskWindow() {
+		
+		clearNewTaskWindow();
+		
 	    // close with animation
 	    addTaskForm.setSclass("add-task-form");
 	    taskSection.setSclass("task-section");
         btCreatTask.setSclass("add-btn");
-		
-		generateTaskList();
 	}
 	
 	@Listen("onSelect = #cbFormat")
@@ -297,23 +386,39 @@ public class MainController extends SelectorComposer<Window> {
         TaskFormat selected = cbFormat.getSelectedItem().getValue();
         
 		if(selected == TaskFormat.FREQUENCY) {
-        	layoutForDate.setVisible(false);
-        	layoutForFrequency.setVisible(true);
-        	
-        	ibPeriod.setValue(null);
-        	frequencyFormatListModelList.addToSelection(FrequencyTypes.BY_DAY);
-        	
+			onSelectFrequencyOnTaskFormat();
+			clearFrequencyFields();
         }else if(selected == TaskFormat.DATE) {
-        	layoutForDate.setVisible(true);
-        	layoutForFrequency.setVisible(false);
-
-        	dbSelectedDate.setValue(null);
-        	
+        	onSelectDateOnTaskFormat();
+        	clearDateFields();
 		}else {
-        	layoutForDate.setVisible(false);
-        	layoutForFrequency.setVisible(false);	
+			onSelectDefaultOnTaskFormat();
 		}
     }
+	
+	private void onSelectDefaultOnTaskFormat() {
+    	layoutForDate.setVisible(false);
+    	layoutForFrequency.setVisible(false);	
+	}
+
+	private void onSelectDateOnTaskFormat() {
+    	layoutForDate.setVisible(true);
+    	layoutForFrequency.setVisible(false);
+	}
+	
+	private void clearDateFields() {
+    	dbSelectedDate.setValue(null);	
+	}
+	
+	private void onSelectFrequencyOnTaskFormat() {
+    	layoutForDate.setVisible(false);
+    	layoutForFrequency.setVisible(true);
+	}
+	
+	private void clearFrequencyFields() {
+    	ibPeriod.setValue(null);
+    	frequencyFormatListModelList.addToSelection(FrequencyTypes.BY_DAY);
+	}
 
 	@Listen("onClick = #btClearTime")
 	public void onClickbtClearTime(Event e) {
@@ -356,4 +461,16 @@ public class MainController extends SelectorComposer<Window> {
 		ts.add(t);
 		tasksMap.put(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get(), ts);
 	}
+	
+	public static Date localTimeToDate(LocalTime localTime) {
+        // Combine with today's date
+        LocalDate today = LocalDate.now();
+        LocalDateTime localDateTime = LocalDateTime.of(today, localTime);
+
+        // Convert to ZonedDateTime using system default zone
+        ZonedDateTime zonedDateTime = localDateTime.atZone(ZoneId.systemDefault());
+
+        // Convert to Instant, then to Date
+        return Date.from(zonedDateTime.toInstant());
+    }
 }

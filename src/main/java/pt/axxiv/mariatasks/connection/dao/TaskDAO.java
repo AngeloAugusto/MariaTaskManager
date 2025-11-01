@@ -92,8 +92,12 @@ public class TaskDAO {
         	doc.append(TaskFields.SELECTED_DATE, costum.getSelectedDate());
         }
         
-        collection.insertOne(doc);
-        task.setId(doc.getObjectId(TaskFields.ID));
+	    if(task.getId() == null) {
+	    	collection.insertOne(doc);
+        	task.setId(doc.getObjectId(TaskFields.ID));
+	    }else {
+	    	 collection.updateOne(eq(TaskFields.ID, task.getId()), new Document("$set", doc));
+	    }
     }
 
 	public Task findById(ObjectId id) {

@@ -5,7 +5,6 @@ import java.util.Calendar;
 import org.bson.types.ObjectId;
 
 import pt.axxiv.mariatasks.data.FrequencyTypes;
-import pt.axxiv.mariatasks.data.Section;
 import pt.axxiv.mariatasks.data.Task;
 import pt.axxiv.mariatasks.data.TaskCustom;
 import pt.axxiv.mariatasks.data.TaskDaily;
