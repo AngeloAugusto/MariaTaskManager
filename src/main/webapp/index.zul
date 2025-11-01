@@ -47,7 +47,7 @@
 			</vlayout>
 	
 		</div>
-		<timer id="myTimer" delay="1000" repeats="true"/>
+		<timer id="myTimer" delay="500" repeats="true"/>
 		
 		<popup id="ppAddSection" sclass="add-section" width="300px">
 		    <textbox id="txSection" placeholder="Section Title"/>

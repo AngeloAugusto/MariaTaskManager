@@ -23,6 +23,7 @@ import static com.mongodb.client.model.Filters.ne;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -61,7 +62,7 @@ public class TaskDAO {
 	    
 	    Date date = doc.getDate(TaskFields.TIME_OF_THE_DAY);
 	    if(date != null)
-	    	task.setTimeOfTheDay(LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()).toLocalTime());
+	    	task.setTimeOfTheDay(date.toInstant().atZone(ZoneOffset.UTC).toLocalTime());
 
 	    if (task instanceof TaskCustom costum) {
 	    	costum.setPeriod(doc.getInteger(TaskFields.PERIOD));

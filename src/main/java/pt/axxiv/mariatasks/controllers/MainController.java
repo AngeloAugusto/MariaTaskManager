@@ -344,6 +344,7 @@ public class MainController extends SelectorComposer<Window> {
 			task.setTimeOfTheDay(tbTime.getValueInLocalTime());
 		}
 		
+
 		new TaskDAO().insert(task);
 		addTaskToMap(task);
 		
