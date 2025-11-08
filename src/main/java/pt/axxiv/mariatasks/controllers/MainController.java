@@ -404,6 +404,8 @@ public class MainController extends SelectorComposer<Window> {
 	    txNotes.setValue("");
 	    taskFormatListModelList.addToSelection(TaskFormat.ONCE);
 	    tbTime.setValue(null);
+	    
+	    editingTask = null;
 
 		onSelectDefaultOnTaskFormat();
 	    
