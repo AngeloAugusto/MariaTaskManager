@@ -19,7 +19,6 @@
 	box-sizing: border-box;
 }
 
-
 .sidebar {
 	position: relative;
 	top: 0;
@@ -47,7 +46,6 @@
 	width: 300px;
 }
 
-
 .sidebar.collapsed {
 	width: 100px;
 }
@@ -61,7 +59,7 @@
 	width: 100%;
 }
 
-.menu-btn, .menu-item, .add-btn, .save-btn, .clear-btn  {
+.menu-btn, .menu-item, .add-btn, .save-btn, .clear-btn, .logout-btn {
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -69,6 +67,10 @@
 	border: 1px solid #777;
 	color: #fff;
 	cursor: pointer;
+}
+
+.logout-btn.z-button{
+	padding: 3px 16px;
 }
 
 .clear-btn {
@@ -80,18 +82,19 @@
 	margin-right: 5px;
 }
 
- .clear-btn:hover, .floating-btn:hover, .add-btn:hover, .menu-btn:hover, .save-btn:hover{
+.clear-btn:hover, .floating-btn:hover, .add-btn:hover, .menu-btn:hover,
+	.save-btn:hover {
 	border: 1px solid #aaa !important;
 	background: transparent !important;
 	transform: scale(1.05);
 	background-color: transparent;
- }
- 
- .z-button:focus, .z-button:hover, menu-item:hover{
- 	border: 1px solid #aaa !important;
+}
+
+.z-button:focus, .z-button:hover, menu-item:hover {
+	border: 1px solid #aaa !important;
 	background: transparent !important;
 	background-color: transparent;
- }
+}
 
 .menu-btn, .add-btn, .save-btn {
 	width: 30px;
@@ -118,7 +121,8 @@
 .menu-item.open {
 	width: 280px;
 }
-.menu-item.selected, .menu-item.selected:hover{
+
+.menu-item.selected, .menu-item.selected:hover {
 	border: 1.5px solid #fff !important;
 }
 
@@ -140,8 +144,8 @@
 
 .task-section {
 	flex: 1;
-	min-width: 200px;       /* ensures it doesn’t shrink too much */
-	max-width: 100%;        /* never overflow container */
+	min-width: 200px; /* ensures it doesn’t shrink too much */
+	max-width: 100%; /* never overflow container */
 	height: 100%;
 	background: #242526;
 	border: 2px solid white;
@@ -150,10 +154,9 @@
 	display: flex;
 	flex-direction: column;
 	box-sizing: border-box;
-	overflow-y: auto;       /* scroll if too many tasks */
+	overflow-y: auto; /* scroll if too many tasks */
 	transition: width 0.3s ease;
 }
-
 
 .task-header {
 	display: flex;
@@ -198,7 +201,6 @@
 	transition: width 0.3s ease; /* smooth like sidebar */
 	box-sizing: border-box;
 	opacity: 0;
-	
 	gap: 5px;
 	transition: width 0.3s ease;
 	box-sizing: border-box;
@@ -208,7 +210,6 @@
 	width: 300px; /* expanded width */
 	opacity: 1;
 }
-
 
 .extra-fields {
 	background: #242526;
@@ -243,8 +244,8 @@
 	padding: 5px 0px 10px 10px;
 }
 
-.z-textbox::placeholder, .z-intbox::placeholder, .z-datebox-input::placeholder, z-timebox::placeholder,
-	.z-calendar-outside {
+.z-textbox::placeholder, .z-intbox::placeholder, .z-datebox-input::placeholder,
+	z-timebox::placeholder, .z-calendar-outside {
 	color: grey;
 }
 
@@ -255,14 +256,15 @@
 .z-combobox-readonly>input, .z-combobox-button, .z-combobox-input:focus,
 	.z-combobox-readonly .z-combobox-button, .z-combobox-popup,
 	.z-datebox-input, .z-datebox-input:focus, .z-datebox-button,
-	.z-datebox-popup, .z-timebox-input, .z-timebox-input:focus, .z-timebox-button, .z-timebox-button:focus, .z-timebox-button:hover{
+	.z-datebox-popup, .z-timebox-input, .z-timebox-input:focus,
+	.z-timebox-button, .z-timebox-button:focus, .z-timebox-button:hover {
 	border: 1px solid #555;
 	border-radius: 6px;
 	background: #1e1e1e;
 	color: white;
 }
 
-.z-timebox-button{
+.z-timebox-button {
 	font-size: 15px;
 }
 
@@ -279,17 +281,16 @@
 	color: white;
 }
 
- .z-timebox-button:hover, .z-timebox-input:focus + .z-timebox-button {
+.z-timebox-button:hover, .z-timebox-input:focus+.z-timebox-button {
 	background: #1e1e1e;
 	border: 1px solid #555;
 	color: white;
-	
 }
-.z-timebox-button > a:hover,  .z-timebox-button:hover > i {
+
+.z-timebox-button>a:hover, .z-timebox-button:hover>i {
 	background: #1e1e1e;
 	border: none;
 	color: white;
-	 
 }
 
 .z-combobox-input:focus, .z-textbox:focus, .z-textarea:focus,
@@ -305,7 +306,8 @@
 	border-radius: 6px;
 }
 
-.z-calendar-cell:hover, .z-datebox-button:hover, .z-combobox-button:hover {
+.z-calendar-cell:hover, .z-datebox-button:hover, .z-combobox-button:hover
+	{
 	background: #333;
 }
 
@@ -338,6 +340,7 @@
 	cursor: pointer;
 	transition: transform 0.2s ease;
 }
+
 .add-section {
 	background: #242526;
 	padding: 5px;
@@ -345,15 +348,61 @@
 	border-radius: 12px;
 	gap: 10px;
 }
-.z-popup-content{
+
+.z-popup-content {
 	background: #242526;
 	border: none;
 	box-shadow: none;
 }
-.add-btn>.z-icon-plus{
+
+.add-btn>.z-icon-plus {
 	transition: rotate 0.5s ease;
 }
-.add-btn.rotate>.z-icon-plus{
+
+.add-btn.rotate>.z-icon-plus {
 	rotate: 45deg;
 	transition: rotate 0.5s ease;
+}
+
+.profile-btn {
+	position: absolute;
+	bottom: 10px;
+	left: 10px;
+	width: 30px;
+	height: 30px;
+	border-radius: 6px;
+	background: transparent;
+	color: #fff;
+	border: 1px solid #777;
+	display: flex;
+	justify-content: center; align-items : center;
+	font-size: 20px;
+	cursor: pointer;
+	transition: transform 0.2s ease;
+	align-items: center;
+}
+
+.profile-btn.open>.z-icon-user {
+	font-size: 20px;
+}
+
+.profile-btn.open {
+	width: fit-content;
+	font-size: 14px;
+}
+
+.login-container {
+	display: flex;
+	justify-content: center;
+	align-content: center;
+	max-height: 500px;
+	opacity: 1;
+	transition: all 0.5s ease;
+}
+
+.login-container.collapsed {
+	max-height: 0;
+	overflow: hidden;
+	opacity: 0;
+	transition: all 0.5s ease;
 }

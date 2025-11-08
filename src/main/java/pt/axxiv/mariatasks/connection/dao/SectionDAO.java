@@ -28,13 +28,15 @@ public class SectionDAO {
 	    section.setId(doc.getObjectId(SectionFields.ID));
 	    section.setTitle(doc.getString(SectionFields.TITLE));
 	    section.setImgPath(doc.getString(SectionFields.IMGPATH));
+	    section.setOwnerId(doc.getObjectId(SectionFields.OWNER));
 	    
 	    return section;
 	}
 	
 	public Section insert(Section section) {
         Document doc = new Document(SectionFields.TITLE, section.getTitle())
-        		.append(SectionFields.IMGPATH, section.getImgPath());
+        		.append(SectionFields.IMGPATH, section.getImgPath())
+        		.append(SectionFields.OWNER, section.getOwnerId());
         
         collection.insertOne(doc);
         section.setId(doc.getObjectId(SectionFields.ID));
@@ -49,9 +51,9 @@ public class SectionDAO {
 	    return null;
 	}
 
-	public List<Section> findAll() {
+	public List<Section> findAllByUser(ObjectId owner) {
 	    List<Section> sections = new ArrayList<>();
-	    for (Document doc : collection.find()) {
+	    for (Document doc : collection.find(eq(SectionFields.OWNER, owner))) {
 	    	sections.add(createFromDocument(doc));
 	    }
 	    return sections;

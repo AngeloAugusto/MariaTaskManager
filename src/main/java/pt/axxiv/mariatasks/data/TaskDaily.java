@@ -8,8 +8,8 @@ public class TaskDaily extends Task{
 		super();
 	}
 	
-	public TaskDaily(String title, String notes, ObjectId section) {
-		super(title, notes, section);
+	public TaskDaily(String title, String notes, ObjectId section, ObjectId user) {
+		super(title, notes, section, user);
 	}
 	
 }

@@ -7,12 +7,14 @@ public class Section implements Comparable<Section> {
 	private ObjectId id;
 	private String title;
 	private String imgPath;
+	private ObjectId ownerId;
 	
 	public Section(){}
 	
-	public Section(String title, String imgPath) {
+	public Section(String title, String imgPath, ObjectId ownerId) {
 		this.title=title;
 		this.imgPath=imgPath;
+		this.ownerId=ownerId;
 	}
 
 	public ObjectId getId() {
@@ -37,6 +39,14 @@ public class Section implements Comparable<Section> {
 
 	public void setImgPath(String imgPath) {
 		this.imgPath = imgPath;
+	}
+
+	public ObjectId getOwnerId() {
+		return ownerId;
+	}
+
+	public void setOwnerId(ObjectId ownerId) {
+		this.ownerId = ownerId;
 	}
 
 	@Override

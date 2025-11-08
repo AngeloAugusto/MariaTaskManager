@@ -11,12 +11,12 @@ public class TaskCustom extends Task{
 		super();
 	}
 	
-	public TaskCustom(String title, String notes, ObjectId section) {
-		super(title, notes, section);
+	public TaskCustom(String title, String notes, ObjectId section, ObjectId user) {
+		super(title, notes, section, user);
 	}
 	
-	public TaskCustom(String title, String notes, int period, FrequencyTypes frequencyTypes, ObjectId section) {
-		super(title, notes, section);
+	public TaskCustom(String title, String notes, int period, FrequencyTypes frequencyTypes, ObjectId section, ObjectId user) {
+		super(title, notes, section, user);
 		this.period=period;
 		this.frequencyTypes=frequencyTypes;
 	}

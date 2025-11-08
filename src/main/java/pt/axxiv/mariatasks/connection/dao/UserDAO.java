@@ -51,6 +51,14 @@ public class UserDAO {
 	    return null;
 	}
 
+	public User findByUsername(String name) {
+	    Document doc = collection.find(eq(UserFields.USERNAME, name)).first();
+	    if (doc != null) {
+	        return createFromDocument(doc);
+	    }
+	    return null;
+	}
+
 	public List<User> findAll() {
 	    List<User> users = new ArrayList<>();
 	    for (Document doc : collection.find()) {

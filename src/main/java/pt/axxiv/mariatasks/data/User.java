@@ -1,6 +1,7 @@
 package pt.axxiv.mariatasks.data;
 
 import org.bson.types.ObjectId;
+import pt.axxiv.mariatasks.auth.AuthUtil;
 
 public class User implements Comparable<User> {
 
@@ -15,7 +16,7 @@ public class User implements Comparable<User> {
 		super();
 		this.title = title;
 		this.username = username;
-		this.password = password;
+		this.password = AuthUtil.hashPassword(password);
 	}
 
 	public ObjectId getId() {
@@ -49,7 +50,7 @@ public class User implements Comparable<User> {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-
+	
 	@Override
 	public int compareTo(User arg0) {
 		// TODO Auto-generated method stub

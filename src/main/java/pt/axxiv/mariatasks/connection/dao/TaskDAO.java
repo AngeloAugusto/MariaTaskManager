@@ -19,10 +19,9 @@ import pt.axxiv.mariatasks.data.TaskDate;
 import pt.axxiv.mariatasks.data.TaskOnce;
 
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.ne;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,6 +58,7 @@ public class TaskDAO {
 	    task.setNotes(doc.getString(TaskFields.NOTES));
 	    task.setParent(doc.getObjectId(TaskFields.PARENT));
 	    task.setSection(doc.getObjectId(TaskFields.SECTION));
+	    task.setOwnerId(doc.getObjectId(TaskFields.OWNER));
 	    
 	    Date date = doc.getDate(TaskFields.TIME_OF_THE_DAY);
 	    if(date != null)
@@ -83,7 +83,8 @@ public class TaskDAO {
         		.append(TaskFields.PARENT, task.getParent())
         		.append(TaskFields.SECTION, task.getSection())
         		.append(TaskFields.TIME_OF_THE_DAY, task.getTimeOfTheDay())
-        		.append(TaskFields.TYPE, task.getClass().getSimpleName());
+        		.append(TaskFields.TYPE, task.getClass().getSimpleName())
+        		.append(TaskFields.OWNER, task.getOwnerId());
         
         if (task instanceof TaskCustom costum) {
         	doc.append(TaskFields.PERIOD, costum.getPeriod());
@@ -118,9 +119,9 @@ public class TaskDAO {
 	}
 
 
-    public List<Task> findAllOpen() {
+    public List<Task> findAllOpenByUser(ObjectId userId) {
         List<Task> tasks = new ArrayList<>();
-        for (Document doc : collection.find(eq(TaskFields.CLOSE_DATE, null))) {
+        for (Document doc : collection.find(and(eq(TaskFields.CLOSE_DATE, null),eq(TaskFields.OWNER, userId)))) {
         	Task task = createFromDocument(doc);
 	        
 	        if (task.getStartDate() == null || !task.getStartDate().after(new Date())) {
@@ -134,9 +135,9 @@ public class TaskDAO {
     }
 
 
-    public List<Task> findAllOpen(Section section) {
+    public List<Task> findAllOpenByUser(Section section, ObjectId userId) {
         List<Task> tasks = new ArrayList<>();
-        for (Document doc : collection.find(eq(TaskFields.CLOSE_DATE, null))) {
+        for (Document doc : collection.find(and(eq(TaskFields.CLOSE_DATE, null),eq(TaskFields.OWNER, userId)))) {
         	Task task = createFromDocument(doc);
 	        
 	        if ((task.getStartDate() == null || !task.getStartDate().after(new Date())) && task.getSection().equals(section.getId())) {

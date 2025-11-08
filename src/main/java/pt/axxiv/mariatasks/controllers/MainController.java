@@ -10,6 +10,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.bson.types.ObjectId;
+import org.zkoss.zk.ui.Executions;
+import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.select.SelectorComposer;
 import org.zkoss.zk.ui.select.annotation.Listen;
@@ -28,8 +32,10 @@ import org.zkoss.zul.Timer;
 import org.zkoss.zul.Vlayout;
 import org.zkoss.zul.Window;
 
+import pt.axxiv.mariatasks.auth.AuthUtil;
 import pt.axxiv.mariatasks.connection.dao.SectionDAO;
 import pt.axxiv.mariatasks.connection.dao.TaskDAO;
+import pt.axxiv.mariatasks.connection.dao.UserDAO;
 import pt.axxiv.mariatasks.connection.factory.TaskFactory;
 import pt.axxiv.mariatasks.connection.labels.TaskFields;
 import pt.axxiv.mariatasks.data.FrequencyTypes;
@@ -40,6 +46,7 @@ import pt.axxiv.mariatasks.data.TaskDaily;
 import pt.axxiv.mariatasks.data.TaskDate;
 import pt.axxiv.mariatasks.data.TaskFormat;
 import pt.axxiv.mariatasks.data.TaskOnce;
+import pt.axxiv.mariatasks.data.User;
 
 public class MainController extends SelectorComposer<Window> {
 
@@ -81,6 +88,8 @@ public class MainController extends SelectorComposer<Window> {
 	@Wire
 	private Textbox txSection;
 	@Wire
+	private Button btProfile;
+	@Wire
     private Timer myTimer;
 
 	private List<Section> sections = new ArrayList<Section>();
@@ -92,15 +101,36 @@ public class MainController extends SelectorComposer<Window> {
 	private Section selectedSection;
 	
 	private Task editingTask = null;
+
+	private User currentUser;
+	
+	@Override
+    public void doBeforeComposeChildren(Window comp) throws Exception {
+        super.doBeforeComposeChildren(comp);
+
+        // Check if logged in
+        if (!AuthUtil.isLoggedIn()) {
+            // Redirect to login page
+            Executions.sendRedirect("/login.zul");
+            return;
+        }
+    }
 	
 	@Override
 	public void doAfterCompose(Window comp) throws Exception {
 		super.doAfterCompose(comp);
+		
 
-		sections = new SectionDAO().findAll();
+		currentUser = new UserDAO().findById((ObjectId) Sessions.getCurrent().getAttribute("currentUserId"));
+		
+		if(currentUser == null) {
+			return;
+		}
+		
+		sections = new SectionDAO().findAllByUser(currentUser.getId());
 		
 		if(sections.size()<=0) {
-			Section section = new Section("To Do", "");
+			Section section = new Section("To Do", "", currentUser.getId());
 			section = new SectionDAO().insert(section);
 			sections.add(section);
 		}
@@ -111,7 +141,7 @@ public class MainController extends SelectorComposer<Window> {
 			tasksMap.put(s, new ArrayList<Task>());
 		}
 		
-		for(Task t : new TaskDAO().findAllOpen()) {
+		for(Task t : new TaskDAO().findAllOpenByUser(currentUser.getId())) {
 			addTaskToMap(t);
 		}
 		
@@ -258,6 +288,16 @@ public class MainController extends SelectorComposer<Window> {
 		    menuItems.appendChild(bt);
 	    }
 	    
+	    if(showSectionTitle) {
+	    	btProfile.setIconSclass("z-icon-user");
+	    	btProfile.setSclass("profile-btn open");
+	    	btProfile.setLabel(currentUser.getTitle());
+	    }else {
+	    	btProfile.setIconSclass("z-icon-user");
+	    	btProfile.setSclass("profile-btn");
+	    	btProfile.setLabel(null);
+		}
+	    
 	}
 
 	@Listen("onClick = #btToggleMenu")
@@ -292,12 +332,17 @@ public class MainController extends SelectorComposer<Window> {
 	public void onClickbtDeleteBD(Event e) {
 		new TaskDAO().deleteAll();
 		new SectionDAO().deleteAll();
+		new UserDAO().deleteAll();
 		tasksMap = new HashMap<Section, List<Task>>();
 		sections = new ArrayList<Section>();
 		
-		Section section = new Section("To Do", "");
+		User user = new User("Test", "teste", "password");
+		user = new UserDAO().insert(user);
+		
+		Section section = new Section("To Do", "", user.getId());
 		section = new SectionDAO().insert(section);
 		sections.add(section);
+		
 
 		generateSectionList();
 		generateTaskList();
@@ -325,7 +370,7 @@ public class MainController extends SelectorComposer<Window> {
 		String notes = txNotes.getValue();
 		TaskFormat selectedFormat = (TaskFormat) cbFormat.getSelectedItem().getValue();
 		
-		Task task = TaskFactory.createTask(selectedFormat, title, notes, selectedSection.getId());
+		Task task = TaskFactory.createTask(selectedFormat, title, notes, selectedSection.getId(), currentUser.getId());
 		
 		if(editingTask != null) {
 			task.setId(editingTask.getId());
@@ -432,7 +477,7 @@ public class MainController extends SelectorComposer<Window> {
 		
 		//TODO: Verificar se título existe ou não
 		
-		Section section = new Section(title, "");
+		Section section = new Section(title, "", currentUser.getId());
 		section = new SectionDAO().insert(section);
 			
 		sections.add(section);
@@ -444,9 +489,19 @@ public class MainController extends SelectorComposer<Window> {
 		generateSectionList();
 	}
 	
+
+	@Listen("onClick = #btLogout")
+	public void onClickbtLogout(Event e) {
+		AuthUtil.logout();
+        Executions.sendRedirect("/login.zul");
+	}
+	
+	
+	
+	
 	@Listen("onTimer = #myTimer")
     public void runTask(Event event) {
-		List<Task> tasksTemp = new TaskDAO().findAllOpen(selectedSection);
+		List<Task> tasksTemp = new TaskDAO().findAllOpenByUser(selectedSection, currentUser.getId());
 		if(tasksTemp.size()>0) {
 
 			List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(tasksTemp.get(0).getSection())).findFirst().get());

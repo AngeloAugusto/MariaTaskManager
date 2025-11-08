@@ -3,12 +3,30 @@
 
 	<window id="tasksTabWindow" border="none" height="100%" width="100%" style="background:#242526; color:#fff;" apply="pt.axxiv.mariatasks.controllers.LoginController">
 	<script src="custom-date-labels*.js" ></script>
-<!-- 		<div sclass="main-container"> -->
+		<div sclass="login-container">
 			<vlayout sclass="extra-fields" width="270px">
-				<textbox id="tbUsername"/>
-				<textbox id="tbPassword" type="password"/>
-				<button id="btLogin" sclass="save-btn" iconSclass="z-icon-save"/>
+				<textbox id="tbUsername" placeholder="Username"/>
+				<textbox id="tbPassword" placeholder="Password" type="password"/>
+				<button id="btLogin" sclass="save-btn" iconSclass="z-icon-check"/>
+				<separator/>
+				<separator/>
+				<label value="New user?" style="color: white;" />
+				<button id="btRegister" label="Register" sclass="logout-btn" />
 			</vlayout>
-<!-- 		</div> -->
+		</div>
+		<separator/>
+		<div id="registerWindow" sclass="login-container collapsed">
+			<vlayout sclass="extra-fields" width="270px">
+			    <textbox id="tbTitle" placeholder="Name"/>
+			    <separator />
+			    <textbox id="tbNewUsername" placeholder="Username"/>
+			    <separator />
+			    <textbox id="tbNewPassword" placeholder="Password" type="password"/>
+			    <separator />
+			    <textbox id="tbConfirmPassword" placeholder="ConfirmPassowrd" type="password"/>
+			    <separator />
+		        <button id="btCreateNewUser" sclass="save-btn" iconSclass="z-icon-save"/>
+	        </vlayout>
+		</div>
 	</window>
 </zk>

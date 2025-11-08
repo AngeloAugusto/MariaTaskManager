@@ -6,12 +6,11 @@
 		<div sclass="main-container">
 			
 			<!-- Sidebar -->
-			<div id="sidebar" sclass="sidebar collapsed">
+			<div id="sidebar" sclass="sidebar collapsed">			
 				<button id="btToggleMenu" sclass="menu-btn" iconSclass="z-icon-bars"/>
-				<vlayout id="menuItems" sclass="menu-items">
-<!-- 					<button id="btDeleteBD" sclass="menu-item" iconSclass="z-icon-image"/> -->
-				</vlayout>
+				<vlayout id="menuItems" sclass="menu-items"></vlayout>
 				<button id="btAddSection" sclass="floating-btn" iconSclass="z-icon-plus" popup="ppAddSection, position=before_start" />
+				<button id="btProfile" sclass="profile-btn" iconSclass="z-icon-user" popup="ppProfile, position=before_start" />
 			</div>
 
 			<!-- Task Section -->
@@ -53,6 +52,10 @@
 		    <textbox id="txSection" placeholder="Section Title"/>
 		    <separator />
 	        <button id="btSaveNewSection" sclass="save-btn" iconSclass="z-icon-check"/>
+		</popup>
+		
+		<popup id="ppProfile" sclass="add-section">
+			<button id="btLogout" label="Logout" sclass="logout-btn" />
 		</popup>
 	</window>
 </zk>

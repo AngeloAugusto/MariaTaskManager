@@ -14,19 +14,19 @@ import pt.axxiv.mariatasks.data.TaskOnce;
 
 public class TaskFactory {
 	
-	public static Task createTask(TaskFormat format, String title, String notes, ObjectId section) {
+	public static Task createTask(TaskFormat format, String title, String notes, ObjectId section, ObjectId user) {
         return switch (format) {
-            case ONCE -> new TaskOnce(title, notes, section);
-            case EVERY_DAY -> new TaskDaily(title, notes, section);
-            case FREQUENCY -> new TaskCustom(title, notes, section);
-            case DATE -> new TaskDate(title, notes, section);
+            case ONCE -> new TaskOnce(title, notes, section, user);
+            case EVERY_DAY -> new TaskDaily(title, notes, section, user);
+            case FREQUENCY -> new TaskCustom(title, notes, section, user);
+            case DATE -> new TaskDate(title, notes, section, user);
         };
     }
 	
 	public static Task createRollingTask(Task oldTask) {
 		Task t = null;
 		if(oldTask instanceof TaskDaily oldTaskDaily) {
-			t = new TaskDaily(oldTaskDaily.getTitle(), oldTaskDaily.getNotes(), oldTaskDaily.getSection());
+			t = new TaskDaily(oldTaskDaily.getTitle(), oldTaskDaily.getNotes(), oldTaskDaily.getSection(), oldTask.getOwnerId());
 			t.setParent(oldTaskDaily.getId());
 			
 			Calendar c = Calendar.getInstance();
@@ -41,7 +41,7 @@ public class TaskFactory {
 			
 		}else if(oldTask instanceof TaskCustom oldTaskCustom) {
 			
-			t = new TaskCustom(oldTaskCustom.getTitle(), oldTaskCustom.getNotes(), oldTaskCustom.getPeriod(), oldTaskCustom.getFrequencyTypes(), oldTaskCustom.getSection());
+			t = new TaskCustom(oldTaskCustom.getTitle(), oldTaskCustom.getNotes(), oldTaskCustom.getPeriod(), oldTaskCustom.getFrequencyTypes(), oldTaskCustom.getSection(), oldTask.getOwnerId());
 			t.setParent(oldTaskCustom.getId());
 			
 			Calendar c = Calendar.getInstance();
@@ -79,7 +79,7 @@ public class TaskFactory {
 			c.set(Calendar.SECOND, 0);
 			c.set(Calendar.MILLISECOND, 0);
 			
-			t = new TaskDate(oldTask.getTitle(), oldTask.getNotes(), c.getTime(), oldTask.getSection());
+			t = new TaskDate(oldTask.getTitle(), oldTask.getNotes(), c.getTime(), oldTask.getSection(), oldTask.getOwnerId());
 		}
 		
 		return t;

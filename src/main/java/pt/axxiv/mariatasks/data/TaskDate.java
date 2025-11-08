@@ -13,12 +13,12 @@ public class TaskDate extends Task{
 		super();
 	}
 	
-	public TaskDate(String title, String notes, ObjectId section) {
-		super(title, notes, section);
+	public TaskDate(String title, String notes, ObjectId section, ObjectId user) {
+		super(title, notes, section, user);
 	}
 	
-	public TaskDate(String title, String notes, Date seleDate, ObjectId section) {
-		super(title, notes, section);
+	public TaskDate(String title, String notes, Date seleDate, ObjectId section, ObjectId user) {
+		super(title, notes, section, user);
 		this.selectedDate = seleDate;
 	}
 

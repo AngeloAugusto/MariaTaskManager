@@ -11,6 +11,7 @@ public class TaskFields {
 	public static final String TYPE = "type";
 	public static final String PARENT = "parent";
 	public static final String SECTION = "section";
+	public static final String OWNER = "owner";
 	public static final String TIME_OF_THE_DAY = "timeOfTheDay";
 
 	public static final String SELECTED_DATE = "selectedDate";

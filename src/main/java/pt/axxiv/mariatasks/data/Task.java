@@ -17,12 +17,14 @@ public class Task implements Comparable<Task> {
 	private ObjectId parent;
 	private ObjectId section;
 	private LocalTime timeOfTheDay;
+	private ObjectId ownerId;
 
-	public Task(String title, String notes, ObjectId section) {
+	public Task(String title, String notes, ObjectId section, ObjectId user) {
 		this.title = title;
 		this.notes = notes;
 		this.startDate = Calendar.getInstance().getTime();
 		this.section = section;
+		this.ownerId = user;
 	}
 
 	public Task() {
@@ -97,6 +99,14 @@ public class Task implements Comparable<Task> {
 		this.timeOfTheDay = timeOfTheDay;
 	}
 	
+	public ObjectId getOwnerId() {
+		return ownerId;
+	}
+
+	public void setOwnerId(ObjectId ownerId) {
+		this.ownerId = ownerId;
+	}
+
 	public String timeFormated() {
 		if (timeOfTheDay == null) {
 	        return "";

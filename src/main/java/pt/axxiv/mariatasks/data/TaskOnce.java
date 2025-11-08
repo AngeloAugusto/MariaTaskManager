@@ -8,8 +8,8 @@ public class TaskOnce extends Task{
 		super();
 	}
 	
-	public TaskOnce(String title, String notes, ObjectId section) {
-		super(title, notes, section);
+	public TaskOnce(String title, String notes, ObjectId section, ObjectId user) {
+		super(title, notes, section, user);
 	}
 	
 	
