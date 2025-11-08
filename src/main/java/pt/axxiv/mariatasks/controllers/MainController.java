@@ -18,6 +18,7 @@ import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.select.SelectorComposer;
 import org.zkoss.zk.ui.select.annotation.Listen;
 import org.zkoss.zk.ui.select.annotation.Wire;
+import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.Button;
 import org.zkoss.zul.Combobox;
 import org.zkoss.zul.Datebox;
@@ -470,12 +471,27 @@ public class MainController extends SelectorComposer<Window> {
 	public void onClickbtClearTime(Event e) {
 		tbTime.setValue(null);
 	}
+	
+	@Listen("onClick = #btAddSection")
+	public void onClickbtAddSection(Event e) {
+		txSection.setFocus(true);
+	}
+	
+	@Listen("onOK = #txSection")
+	public void onEnterPresstxSection(Event event) {
+		onClickbtSaveNewSection(null);
+	}
 
 	@Listen("onClick = #btSaveNewSection")
-	public void onClickbtAddSection(Event e) {
+	public void onClickbtSaveNewSection(Event e) {
 		String title = txSection.getValue();
 		
-		//TODO: Verificar se título existe ou não
+		Section sectionToChec = new SectionDAO().findByTitle(title);
+		if(sectionToChec!=null) {
+			Clients.showNotification("Section already exists.", txSection);
+			txSection.setFocus(true);
+			return;
+		}
 		
 		Section section = new Section(title, "", currentUser.getId());
 		section = new SectionDAO().insert(section);

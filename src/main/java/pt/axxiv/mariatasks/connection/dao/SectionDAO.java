@@ -51,6 +51,14 @@ public class SectionDAO {
 	    return null;
 	}
 
+	public Section findByTitle(String title) {
+	    Document doc = collection.find(eq(SectionFields.TITLE, title)).first();
+	    if (doc != null) {
+	        return createFromDocument(doc);
+	    }
+	    return null;
+	}
+
 	public List<Section> findAllByUser(ObjectId owner) {
 	    List<Section> sections = new ArrayList<>();
 	    for (Document doc : collection.find(eq(SectionFields.OWNER, owner))) {
