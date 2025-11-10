@@ -1,5 +1,6 @@
 package pt.axxiv.mariatasks.connection.factory;
 
+import java.time.LocalTime;
 import java.util.Calendar;
 
 import org.bson.types.ObjectId;
@@ -14,19 +15,19 @@ import pt.axxiv.mariatasks.data.TaskOnce;
 
 public class TaskFactory {
 	
-	public static Task createTask(TaskFormat format, String title, String notes, ObjectId section, ObjectId user) {
+	public static Task createTask(TaskFormat format, String title, String notes, ObjectId section, ObjectId user, LocalTime localTime) {
         return switch (format) {
-            case ONCE -> new TaskOnce(title, notes, section, user);
-            case EVERY_DAY -> new TaskDaily(title, notes, section, user);
-            case FREQUENCY -> new TaskCustom(title, notes, section, user);
-            case DATE -> new TaskDate(title, notes, section, user);
+            case ONCE -> new TaskOnce(title, notes, section, user, localTime);
+            case EVERY_DAY -> new TaskDaily(title, notes, section, user, localTime);
+            case FREQUENCY -> new TaskCustom(title, notes, section, user, localTime);
+            case DATE -> new TaskDate(title, notes, section, user, localTime);
         };
     }
 	
 	public static Task createRollingTask(Task oldTask) {
 		Task t = null;
 		if(oldTask instanceof TaskDaily oldTaskDaily) {
-			t = new TaskDaily(oldTaskDaily.getTitle(), oldTaskDaily.getNotes(), oldTaskDaily.getSection(), oldTask.getOwnerId());
+			t = new TaskDaily(oldTaskDaily.getTitle(), oldTaskDaily.getNotes(), oldTaskDaily.getSection(), oldTask.getOwnerId(), oldTask.getTimeOfTheDay());
 			t.setParent(oldTaskDaily.getId());
 			
 			Calendar c = Calendar.getInstance();
@@ -41,7 +42,7 @@ public class TaskFactory {
 			
 		}else if(oldTask instanceof TaskCustom oldTaskCustom) {
 			
-			t = new TaskCustom(oldTaskCustom.getTitle(), oldTaskCustom.getNotes(), oldTaskCustom.getPeriod(), oldTaskCustom.getFrequencyTypes(), oldTaskCustom.getSection(), oldTask.getOwnerId());
+			t = new TaskCustom(oldTaskCustom.getTitle(), oldTaskCustom.getNotes(), oldTaskCustom.getPeriod(), oldTaskCustom.getFrequencyTypes(), oldTaskCustom.getSection(), oldTask.getOwnerId(), oldTask.getTimeOfTheDay());
 			t.setParent(oldTaskCustom.getId());
 			
 			Calendar c = Calendar.getInstance();
@@ -79,7 +80,7 @@ public class TaskFactory {
 			c.set(Calendar.SECOND, 0);
 			c.set(Calendar.MILLISECOND, 0);
 			
-			t = new TaskDate(oldTask.getTitle(), oldTask.getNotes(), c.getTime(), oldTask.getSection(), oldTask.getOwnerId());
+			t = new TaskDate(oldTask.getTitle(), oldTask.getNotes(), c.getTime(), oldTask.getSection(), oldTask.getOwnerId(), oldTask.getTimeOfTheDay());
 		}
 		
 		return t;

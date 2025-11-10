@@ -371,7 +371,7 @@ public class MainController extends SelectorComposer<Window> {
 		String notes = txNotes.getValue();
 		TaskFormat selectedFormat = (TaskFormat) cbFormat.getSelectedItem().getValue();
 		
-		Task task = TaskFactory.createTask(selectedFormat, title, notes, selectedSection.getId(), currentUser.getId());
+		Task task = TaskFactory.createTask(selectedFormat, title, notes, selectedSection.getId(), currentUser.getId(), tbTime.getValueInLocalTime());
 		
 		if(editingTask != null) {
 			task.setId(editingTask.getId());
@@ -384,10 +384,6 @@ public class MainController extends SelectorComposer<Window> {
 			((TaskCustom) task).setFrequencyTypes(cbFrequency.getSelectedItem().getValue());
 		} else if(task instanceof TaskDate) {
 			((TaskDate) task).setSelectedDate(dbSelectedDate.getValue());
-		}
-		
-		if(tbTime.getValue() != null) {
-			task.setTimeOfTheDay(tbTime.getValueInLocalTime());
 		}
 		
 

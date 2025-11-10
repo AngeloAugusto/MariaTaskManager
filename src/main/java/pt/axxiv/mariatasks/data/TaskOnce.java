@@ -1,5 +1,7 @@
 package pt.axxiv.mariatasks.data;
 
+import java.time.LocalTime;
+
 import org.bson.types.ObjectId;
 
 public class TaskOnce extends Task{
@@ -8,8 +10,8 @@ public class TaskOnce extends Task{
 		super();
 	}
 	
-	public TaskOnce(String title, String notes, ObjectId section, ObjectId user) {
-		super(title, notes, section, user);
+	public TaskOnce(String title, String notes, ObjectId section, ObjectId user, LocalTime localTime) {
+		super(title, notes, section, user, localTime);
 	}
 	
 	

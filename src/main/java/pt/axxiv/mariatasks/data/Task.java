@@ -19,12 +19,13 @@ public class Task implements Comparable<Task> {
 	private LocalTime timeOfTheDay;
 	private ObjectId ownerId;
 
-	public Task(String title, String notes, ObjectId section, ObjectId user) {
+	public Task(String title, String notes, ObjectId section, ObjectId user, LocalTime localtime) {
 		this.title = title;
 		this.notes = notes;
 		this.startDate = Calendar.getInstance().getTime();
 		this.section = section;
 		this.ownerId = user;
+		this.timeOfTheDay = localtime;
 	}
 
 	public Task() {

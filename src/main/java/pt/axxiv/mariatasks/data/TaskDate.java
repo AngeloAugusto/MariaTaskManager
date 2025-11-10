@@ -1,6 +1,7 @@
 package pt.axxiv.mariatasks.data;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalTime;
 import java.util.Date;
 
 import org.bson.types.ObjectId;
@@ -13,12 +14,12 @@ public class TaskDate extends Task{
 		super();
 	}
 	
-	public TaskDate(String title, String notes, ObjectId section, ObjectId user) {
-		super(title, notes, section, user);
+	public TaskDate(String title, String notes, ObjectId section, ObjectId user, LocalTime localTime) {
+		super(title, notes, section, user,localTime);
 	}
 	
-	public TaskDate(String title, String notes, Date seleDate, ObjectId section, ObjectId user) {
-		super(title, notes, section, user);
+	public TaskDate(String title, String notes, Date seleDate, ObjectId section, ObjectId user, LocalTime localTime) {
+		super(title, notes, section, user, localTime);
 		this.selectedDate = seleDate;
 	}
 

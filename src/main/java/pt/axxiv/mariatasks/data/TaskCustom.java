@@ -1,5 +1,7 @@
 package pt.axxiv.mariatasks.data;
 
+import java.time.LocalTime;
+
 import org.bson.types.ObjectId;
 
 public class TaskCustom extends Task{
@@ -11,12 +13,12 @@ public class TaskCustom extends Task{
 		super();
 	}
 	
-	public TaskCustom(String title, String notes, ObjectId section, ObjectId user) {
-		super(title, notes, section, user);
+	public TaskCustom(String title, String notes, ObjectId section, ObjectId user, LocalTime localTime) {
+		super(title, notes, section, user, localTime);
 	}
 	
-	public TaskCustom(String title, String notes, int period, FrequencyTypes frequencyTypes, ObjectId section, ObjectId user) {
-		super(title, notes, section, user);
+	public TaskCustom(String title, String notes, int period, FrequencyTypes frequencyTypes, ObjectId section, ObjectId user, LocalTime localTime) {
+		super(title, notes, section, user, localTime);
 		this.period=period;
 		this.frequencyTypes=frequencyTypes;
 	}
