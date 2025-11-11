@@ -17,7 +17,7 @@
 			<vlayout id="taskSection" sclass="task-section" vflex="1">
 				<hlayout sclass="task-header">
 					<label id="lbSectionTitle" sclass="section-title"/>
-					<button id="btCreatTask" sclass="add-btn" iconSclass="z-icon-plus"/>
+					<button id="btCreateTask" sclass="add-btn" iconSclass="z-icon-plus"/>
 				</hlayout>
 				<vlayout id="taskList" sclass="task-list"/>
 			</vlayout>
@@ -55,6 +55,8 @@
 		</popup>
 		
 		<popup id="ppProfile" sclass="add-section">
+			<button id="btHistoric" label="Historic" sclass="logout-btn" />
+			<separator/>
 			<button id="btLogout" label="Logout" sclass="logout-btn" />
 		</popup>
 	</window>

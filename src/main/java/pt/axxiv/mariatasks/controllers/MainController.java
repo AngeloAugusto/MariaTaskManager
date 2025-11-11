@@ -57,7 +57,7 @@ public class MainController extends SelectorComposer<Window> {
 	@Wire
 	private Div sidebar;
 	@Wire
-	private Button btCreatTask;
+	private Button btCreateTask;
 	@Wire
 	private Vlayout taskSection;
 	@Wire
@@ -99,11 +99,13 @@ public class MainController extends SelectorComposer<Window> {
 	private ListModelList<TaskFormat> taskFormatListModelList ;
 
 	private boolean showSectionTitle = false;
+	private boolean inHistoric = false;
 	private Section selectedSection;
 	
 	private Task editingTask = null;
 
 	private User currentUser;
+	
 	
 	@Override
     public void doBeforeComposeChildren(Window comp) throws Exception {
@@ -156,16 +158,16 @@ public class MainController extends SelectorComposer<Window> {
 		taskFormatListModelList.addToSelection(TaskFormat.ONCE);
 
 		generateSectionList();
-		generateTaskList();
+		generateTaskList(tasksMap.get(selectedSection));
 
 	}
 
-	private void generateTaskList() {
+	private void generateTaskList(List<Task> tasks) {
 	    while (taskList.getFirstChild() != null)
 	        taskList.removeChild(taskList.getFirstChild());
 
 	    //tasks.stream().filter(t -> t.getSection().equals(selectedSection.getId())).collect(Collectors.toSet())
-	    for (Task t : tasksMap.get(selectedSection)) {
+	    for (Task t : tasks) {
 	        Div row = new Div();
 	        row.setSclass("line");
 
@@ -191,6 +193,12 @@ public class MainController extends SelectorComposer<Window> {
 	            Label notes = new Label(t.getNotes());
 	            notes.setStyle("font-size: 12px; color: gray; margin-top: 2px;");
 	            textContainer.appendChild(notes);
+	        }
+	        
+	        if (inHistoric) {
+	            Label closedAt = new Label("Task closed at "+t.closedDateFormatted());
+	            closedAt.setStyle("font-size: 12px; color: gray; margin-top: 2px;");
+	            textContainer.appendChild(closedAt);
 	        }
 	        
 	        row.addEventListener("onClick", e ->{
@@ -241,26 +249,28 @@ public class MainController extends SelectorComposer<Window> {
 	        row.appendChild(textContainer);
 
 	        // Done button
-	        Button btDone = new Button(" ");
-	        btDone.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px;");
-	        btDone.addEventListener("onClick", e -> {
-	            List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get());
-				ts.remove(t);
-				tasksMap.put(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get(), ts);
-	            t.setClosed();
-	            new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, t.getCloseDate());
-	            
-	            if(t instanceof TaskOnce) {
-	            	generateTaskList();
-		            return;
-	            }
-
-            	Task task = TaskFactory.createRollingTask(t);
-            	new TaskDAO().insert(task);
-            	
-            	generateTaskList();
-	        });
-	        row.appendChild(btDone);
+	        if(!inHistoric) {
+		        Button btDone = new Button(" ");
+		        btDone.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px;");
+		        btDone.addEventListener("onClick", e -> {
+		            List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get());
+					ts.remove(t);
+					tasksMap.put(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get(), ts);
+		            t.setClosed();
+		            new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, t.getCloseDate());
+		            
+		            if(t instanceof TaskOnce) {
+		            	generateTaskList(tasksMap.get(selectedSection));
+			            return;
+		            }
+	
+	            	Task task = TaskFactory.createRollingTask(t);
+	            	new TaskDAO().insert(task);
+	            	
+	            	generateTaskList(tasksMap.get(selectedSection));
+		        });
+		        row.appendChild(btDone);
+	        }
 
 	        taskList.appendChild(row);
 	    }
@@ -282,9 +292,12 @@ public class MainController extends SelectorComposer<Window> {
 	    	}
 	    	
 	    	bt.addEventListener("onClick", e ->{
+	            if(inHistoric) {
+		    		closeHistoric();
+	            }
 	    		selectedSection = section;
 	            generateSectionList();
-	            generateTaskList();
+	            generateTaskList(tasksMap.get(selectedSection));
 	    	});
 		    menuItems.appendChild(bt);
 	    }
@@ -346,12 +359,12 @@ public class MainController extends SelectorComposer<Window> {
 		
 
 		generateSectionList();
-		generateTaskList();
+		generateTaskList(tasksMap.get(selectedSection));
 		System.out.println("DB CLEARED....................");
 	}
 
-	@Listen("onClick = #btCreatTask")
-	public void onClickbtCreatTask(Event e) {
+	@Listen("onClick = #btCreateTask")
+	public void onClickbtCreateTask(Event e) {
 		clearNewTaskWindow();
 		toggleNewTaskWindow();
 	}
@@ -361,8 +374,21 @@ public class MainController extends SelectorComposer<Window> {
 	    if (sclass.contains("open")) {
 	    	closeNewTaskWindow();
 	    } else {
+	    	
+	    	if(inHistoric) {
+	    		closeHistoric();
+	    	    return;
+	    	}
+	    	
 	    	openNewTaskWindow();
 	    }
+	}
+	
+	private void closeHistoric() {
+		inHistoric = false;
+	    btCreateTask.setSclass("add-btn");
+		generateSectionList();
+	    generateTaskList(tasksMap.get(selectedSection));
 	}
 
 	@Listen("onClick = #btSaveNewTask")
@@ -392,7 +418,7 @@ public class MainController extends SelectorComposer<Window> {
 		
     	closeNewTaskWindow();
 		
-		generateTaskList();
+		generateTaskList(tasksMap.get(selectedSection));
 	}
 	
 	private void clearNewTaskWindow() {
@@ -412,7 +438,7 @@ public class MainController extends SelectorComposer<Window> {
 	private void openNewTaskWindow() {
         addTaskForm.setSclass("add-task-form open"); // slide in
         taskSection.setSclass("task-section retracted");
-        btCreatTask.setSclass("add-btn rotate");
+        btCreateTask.setSclass("add-btn rotate");
         txTitle.setFocus(true);
 	}
 	
@@ -423,7 +449,7 @@ public class MainController extends SelectorComposer<Window> {
 	    // close with animation
 	    addTaskForm.setSclass("add-task-form");
 	    taskSection.setSclass("task-section");
-        btCreatTask.setSclass("add-btn");
+	    btCreateTask.setSclass("add-btn");
 	}
 	
 	@Listen("onSelect = #cbFormat")
@@ -502,12 +528,26 @@ public class MainController extends SelectorComposer<Window> {
 	    
 		generateSectionList();
 	}
-	
+
 
 	@Listen("onClick = #btLogout")
 	public void onClickbtLogout(Event e) {
 		AuthUtil.logout();
         Executions.sendRedirect("/login.zul");
+	}
+
+	@Listen("onClick = #btHistoric")
+	public void onClickbtHistoric(Event e) {
+		
+        if(inHistoric) {
+    		closeHistoric();
+    		return;
+        }
+		
+		inHistoric = true;
+		lbSectionTitle.setValue("Historic");
+		generateTaskList(new TaskDAO().findAllClosed(currentUser.getId()));
+		btCreateTask.setSclass("add-btn rotate");
 	}
 	
 	
@@ -515,13 +555,17 @@ public class MainController extends SelectorComposer<Window> {
 	
 	@Listen("onTimer = #myTimer")
     public void runTask(Event event) {
+		
+		if(inHistoric)
+			return;
+		
 		List<Task> tasksTemp = new TaskDAO().findAllOpenByUser(selectedSection, currentUser.getId());
 		if(tasksTemp.size()>0) {
 
 			List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(tasksTemp.get(0).getSection())).findFirst().get());
 			if(ts.size()!=tasksTemp.size()) {
 				tasksMap.put(sections.stream().filter(s -> s.getId().equals(tasksTemp.get(0).getSection())).findFirst().get(), tasksTemp);
-				generateTaskList();
+				generateTaskList(tasksMap.get(selectedSection));
 			}
 		}
     }

@@ -158,11 +158,11 @@ public class TaskDAO {
         return tasks;
     }
 
-    public List<Task> findAllClosed(Section section) {
+    public List<Task> findAllClosed(ObjectId userId) {
         List<Task> tasks = new ArrayList<>();
         for (Document doc : collection.find(ne(TaskFields.CLOSE_DATE, null)).sort(new BasicDBObject(TaskFields.CLOSE_DATE, -1))) {
         	Task task = createFromDocument(doc);
-        	if(task.getSection().equals(section.getId()))
+        	if(task.getOwnerId().equals(userId))
         		tasks.add(createFromDocument(doc));
 	    }
         return tasks;

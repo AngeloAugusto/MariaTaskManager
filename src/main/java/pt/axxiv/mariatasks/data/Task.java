@@ -1,5 +1,6 @@
 package pt.axxiv.mariatasks.data;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
@@ -114,6 +115,15 @@ public class Task implements Comparable<Task> {
 	    }
 	    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 	    return timeOfTheDay.format(formatter);
+	}
+
+	public String closedDateFormatted() {
+	    if (closeDate == null) {
+	        return "";
+	    }
+
+	    SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+	    return formatter.format(closeDate);
 	}
 
 	@Override
