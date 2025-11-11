@@ -201,50 +201,52 @@ public class MainController extends SelectorComposer<Window> {
 	            textContainer.appendChild(closedAt);
 	        }
 	        
-	        row.addEventListener("onClick", e ->{
-	        	if(editingTask == null || editingTask != t) {
-	        		openNewTaskWindow();
-		        	editingTask = t;
-	        	} else if(t == editingTask) {
-	        		closeNewTaskWindow();
-	        		editingTask = null;
-	        		return;
-	        	}else {
-	        		System.out.println("NOW WHAT???");
-	        		return;
-	        	}
-	        	
-		        
-		        txTitle.setValue(editingTask.getTitle());
-		        txNotes.setValue(editingTask.getNotes());
-		        
-		        if(editingTask.getTimeOfTheDay()!=null)
-		        	tbTime.setValue(localTimeToDate(editingTask.getTimeOfTheDay()));
-		       
-		        if(editingTask instanceof TaskOnce) {
-		        	taskFormatListModelList.addToSelection(TaskFormat.ONCE);
+	        if(!inHistoric) {
+		        row.addEventListener("onClick", e ->{
+		        	if(editingTask == null || editingTask != t) {
+		        		openNewTaskWindow();
+			        	editingTask = t;
+		        	} else if(t == editingTask) {
+		        		closeNewTaskWindow();
+		        		editingTask = null;
+		        		return;
+		        	}else {
+		        		System.out.println("NOW WHAT???");
+		        		return;
+		        	}
 		        	
-		        	onSelectDefaultOnTaskFormat();
-		        	
-		        }else if(editingTask instanceof TaskDaily) {
-		        	taskFormatListModelList.addToSelection(TaskFormat.EVERY_DAY);
-		        	
-		        	onSelectDefaultOnTaskFormat();
-		        	
-		        }else if(editingTask instanceof TaskCustom tCostum) {
-		        	taskFormatListModelList.addToSelection(TaskFormat.FREQUENCY);
-		        	ibPeriod.setValue(tCostum.getPeriod());
-		        	frequencyFormatListModelList.addToSelection(tCostum.getFrequencyTypes());
-
-					onSelectFrequencyOnTaskFormat();
-					
-		        } else if(editingTask instanceof TaskDate tDate) {
-		        	taskFormatListModelList.addToSelection(TaskFormat.DATE);
-		        	dbSelectedDate.setValue(tDate.getSelectedDate());
-		        	
-		        	onSelectDateOnTaskFormat();
-		        } 
-	        });
+			        
+			        txTitle.setValue(editingTask.getTitle());
+			        txNotes.setValue(editingTask.getNotes());
+			        
+			        if(editingTask.getTimeOfTheDay()!=null)
+			        	tbTime.setValue(localTimeToDate(editingTask.getTimeOfTheDay()));
+			       
+			        if(editingTask instanceof TaskOnce) {
+			        	taskFormatListModelList.addToSelection(TaskFormat.ONCE);
+			        	
+			        	onSelectDefaultOnTaskFormat();
+			        	
+			        }else if(editingTask instanceof TaskDaily) {
+			        	taskFormatListModelList.addToSelection(TaskFormat.EVERY_DAY);
+			        	
+			        	onSelectDefaultOnTaskFormat();
+			        	
+			        }else if(editingTask instanceof TaskCustom tCostum) {
+			        	taskFormatListModelList.addToSelection(TaskFormat.FREQUENCY);
+			        	ibPeriod.setValue(tCostum.getPeriod());
+			        	frequencyFormatListModelList.addToSelection(tCostum.getFrequencyTypes());
+	
+						onSelectFrequencyOnTaskFormat();
+						
+			        } else if(editingTask instanceof TaskDate tDate) {
+			        	taskFormatListModelList.addToSelection(TaskFormat.DATE);
+			        	dbSelectedDate.setValue(tDate.getSelectedDate());
+			        	
+			        	onSelectDateOnTaskFormat();
+			        } 
+		        });
+	        }
 
 	        row.appendChild(textContainer);
 
