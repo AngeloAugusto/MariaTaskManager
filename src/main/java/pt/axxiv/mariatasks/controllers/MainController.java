@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -61,6 +62,8 @@ public class MainController extends SelectorComposer<Window> {
 	@Wire
 	private Vlayout taskSection;
 	@Wire
+	private Vlayout todayTaskList;
+	@Wire
 	private Label lbSectionTitle;
 	@Wire
 	private Vlayout menuItems;
@@ -94,6 +97,7 @@ public class MainController extends SelectorComposer<Window> {
     private Timer myTimer;
 
 	private List<Section> sections = new ArrayList<Section>();
+	private List<Task> tasksToday = new ArrayList<Task>();
 	private Map<Section, List<Task>> tasksMap = new HashMap<Section, List<Task>>();
 	private ListModelList<FrequencyTypes> frequencyFormatListModelList;
 	private ListModelList<TaskFormat> taskFormatListModelList ;
@@ -146,7 +150,10 @@ public class MainController extends SelectorComposer<Window> {
 		
 		for(Task t : new TaskDAO().findAllOpenByUser(currentUser.getId())) {
 			addTaskToMap(t);
+			
 		}
+		
+		tasksToday = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
 		
 		taskFormatListModelList = new ListModelList<TaskFormat>(TaskFormat.values());
 		cbFormat.setModel(taskFormatListModelList);
@@ -159,7 +166,124 @@ public class MainController extends SelectorComposer<Window> {
 
 		generateSectionList();
 		generateTaskList(tasksMap.get(selectedSection));
+		generateTodayTaskList(tasksToday);
 
+	}
+
+	private void generateTodayTaskList(List<Task> tasks) {
+		while (todayTaskList.getFirstChild() != null)
+			todayTaskList.removeChild(todayTaskList.getFirstChild());
+
+	    for (Task t : tasks) {
+	        Div row = new Div();
+	        row.setSclass("line");
+
+	        // Container for title + notes
+	        Div textContainer = new Div();
+	        textContainer.setStyle("display: flex; flex-direction: column;");
+	        textContainer.setTooltiptext(t.getStartDate().toString());
+
+	        // Title
+	        String title = t.getTitle();
+	        if(t.getTimeOfTheDay() != null) {
+	        	title+=" - "+t.timeFormated();
+	        }
+	        if(t instanceof TaskDate taskDate) {
+	        	title += " ("+taskDate.setSelectedDateString()+")";
+	        }
+	        Label titleLabel = new Label(title);
+	        titleLabel.setSclass("taskTitle");
+	        textContainer.appendChild(titleLabel);
+
+	        // Notes
+	        if (t.getNotes() != null && !t.getNotes().isEmpty()) {
+	            Label notes = new Label(t.getNotes());
+	            notes.setStyle("font-size: 12px; color: gray; margin-top: 2px;");
+	            textContainer.appendChild(notes);
+	        }
+	        
+	        if (inHistoric) {
+	            Label closedAt = new Label("Task closed at "+t.closedDateFormatted());
+	            closedAt.setStyle("font-size: 12px; color: gray; margin-top: 2px;");
+	            textContainer.appendChild(closedAt);
+	        }
+	        
+	        row.addEventListener("onClick", e ->{
+	        	if(editingTask == null || editingTask != t) {
+	        		openNewTaskWindow();
+		        	editingTask = t;
+	        	} else if(t == editingTask) {
+	        		closeNewTaskWindow();
+	        		editingTask = null;
+	        		return;
+	        	}else {
+	        		System.out.println("NOW WHAT???");
+	        		return;
+	        	}
+	        	
+		        
+		        txTitle.setValue(editingTask.getTitle());
+		        txNotes.setValue(editingTask.getNotes());
+		        
+		        if(editingTask.getTimeOfTheDay()!=null)
+		        	tbTime.setValue(localTimeToDate(editingTask.getTimeOfTheDay()));
+		       
+		        if(editingTask instanceof TaskOnce) {
+		        	taskFormatListModelList.addToSelection(TaskFormat.ONCE);
+		        	
+		        	onSelectDefaultOnTaskFormat();
+		        	
+		        }else if(editingTask instanceof TaskDaily) {
+		        	taskFormatListModelList.addToSelection(TaskFormat.EVERY_DAY);
+		        	
+		        	onSelectDefaultOnTaskFormat();
+		        	
+		        }else if(editingTask instanceof TaskCustom tCostum) {
+		        	taskFormatListModelList.addToSelection(TaskFormat.FREQUENCY);
+		        	ibPeriod.setValue(tCostum.getPeriod());
+		        	frequencyFormatListModelList.addToSelection(tCostum.getFrequencyTypes());
+
+					onSelectFrequencyOnTaskFormat();
+					
+		        } else if(editingTask instanceof TaskDate tDate) {
+		        	taskFormatListModelList.addToSelection(TaskFormat.DATE);
+		        	dbSelectedDate.setValue(tDate.getSelectedDate());
+		        	
+		        	onSelectDateOnTaskFormat();
+		        } 
+	        });
+	        row.appendChild(textContainer);
+
+	        // Done button
+	        Button btDone = new Button(" ");
+	        btDone.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px;");
+	        btDone.addEventListener("onClick", e -> {
+	            List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get());
+				ts.remove(t);
+				tasksMap.put(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get(), ts);
+				tasksToday.remove(t);
+	            t.setClosed();
+	            new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, t.getCloseDate());
+	            
+	            if(t instanceof TaskOnce) {
+	            	generateTaskList(tasksMap.get(selectedSection));
+	        		generateTodayTaskList(tasksToday);
+		            return;
+	            }
+
+            	Task task = TaskFactory.createRollingTask(t);
+            	new TaskDAO().insert(task);
+            	
+            	tasksToday = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
+            	
+            	generateTaskList(tasksMap.get(selectedSection));
+        		generateTodayTaskList(tasksToday);
+	        });
+	        row.appendChild(btDone);
+	        
+
+	        todayTaskList.appendChild(row);
+	    }
 	}
 
 	private void generateTaskList(List<Task> tasks) {
@@ -258,18 +382,23 @@ public class MainController extends SelectorComposer<Window> {
 		            List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get());
 					ts.remove(t);
 					tasksMap.put(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get(), ts);
+					tasksToday.remove(t);
 		            t.setClosed();
 		            new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, t.getCloseDate());
 		            
-		            if(t instanceof TaskOnce) {
+		            if(t instanceof TaskOnce || t instanceof TaskDate) {
 		            	generateTaskList(tasksMap.get(selectedSection));
+		        		generateTodayTaskList(tasksToday);
 			            return;
 		            }
 	
 	            	Task task = TaskFactory.createRollingTask(t);
 	            	new TaskDAO().insert(task);
+
+	    			tasksToday = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
 	            	
 	            	generateTaskList(tasksMap.get(selectedSection));
+	        		generateTodayTaskList(tasksToday);
 		        });
 		        row.appendChild(btDone);
 	        }
@@ -351,6 +480,7 @@ public class MainController extends SelectorComposer<Window> {
 		new UserDAO().deleteAll();
 		tasksMap = new HashMap<Section, List<Task>>();
 		sections = new ArrayList<Section>();
+		tasksToday = new ArrayList<Task>();
 		
 		User user = new User("Test", "teste", "password");
 		user = new UserDAO().insert(user);
@@ -362,6 +492,7 @@ public class MainController extends SelectorComposer<Window> {
 
 		generateSectionList();
 		generateTaskList(tasksMap.get(selectedSection));
+		generateTodayTaskList(tasksToday);
 		System.out.println("DB CLEARED....................");
 	}
 
@@ -417,10 +548,12 @@ public class MainController extends SelectorComposer<Window> {
 
 		new TaskDAO().insert(task);
 		addTaskToMap(task);
+		tasksToday = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
 		
     	closeNewTaskWindow();
 		
 		generateTaskList(tasksMap.get(selectedSection));
+		generateTodayTaskList(tasksToday);
 	}
 	
 	private void clearNewTaskWindow() {
@@ -562,12 +695,20 @@ public class MainController extends SelectorComposer<Window> {
 			return;
 		
 		List<Task> tasksTemp = new TaskDAO().findAllOpenByUser(selectedSection, currentUser.getId());
-		if(tasksTemp.size()>0) {
+		List<Task> tasksTodayTemp = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
+		if(tasksTemp.size()>0 || tasksTodayTemp.size()>0) {
 
 			List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(tasksTemp.get(0).getSection())).findFirst().get());
 			if(ts.size()!=tasksTemp.size()) {
 				tasksMap.put(sections.stream().filter(s -> s.getId().equals(tasksTemp.get(0).getSection())).findFirst().get(), tasksTemp);
 				generateTaskList(tasksMap.get(selectedSection));
+				tasksToday = tasksTodayTemp;
+				generateTodayTaskList(tasksToday);
+			}
+			
+			if(tasksTodayTemp.size()!=tasksToday.size()) {
+				tasksToday = tasksTodayTemp;
+				generateTodayTaskList(tasksToday);
 			}
 		}
     }
@@ -590,3 +731,4 @@ public class MainController extends SelectorComposer<Window> {
         return Date.from(zonedDateTime.toInstant());
     }
 }
+

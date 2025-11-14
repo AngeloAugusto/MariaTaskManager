@@ -24,6 +24,7 @@ import static com.mongodb.client.model.Filters.ne;
 
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -150,6 +151,30 @@ public class TaskDAO {
         return tasks;
     }
 
+
+    public List<Task> findAllOpenTodayByUser(ObjectId userId) {
+        List<Task> tasks = new ArrayList<>();
+        for (Document doc : collection.find(and(eq(TaskFields.CLOSE_DATE, null),eq(TaskFields.OWNER, userId)))) {
+        	Task task = createFromDocument(doc);
+	        
+        	// TaskDaily and start date <= today
+        	// TaskDate and selected_date <= today
+        	// TaskCustom and start date <= today
+        	// Task with TimeOfDay
+        	
+	        if (((task instanceof TaskDaily taskDaily)) && !taskDaily.getStartDate().after(new Date()) ||
+	        		((task instanceof TaskCustom taskCustom)) && !taskCustom.getStartDate().after(new Date()) ||
+	        		((task instanceof TaskDate taskDate)) && !taskDate.getSelectedDate().after(new Date()) ||
+	        		(task.getTimeOfTheDay() != null && (task instanceof TaskOnce))) {
+	            tasks.add(task);
+	        }
+	    }
+        
+        Collections.sort(tasks, Collections.reverseOrder());
+        
+        return tasks;
+    }
+
     public List<Task> findAllClosed() {
         List<Task> tasks = new ArrayList<>();
         for (Document doc : collection.find(ne(TaskFields.CLOSE_DATE, null)).sort(new BasicDBObject(TaskFields.CLOSE_DATE, -1))) {
@@ -178,6 +203,27 @@ public class TaskDAO {
 
 	public void deleteAll() {
 		collection.deleteMany(new Document());
+	}
+	
+	public static boolean isTodayOrBefore(Date date) {
+	    if (date == null) return false;
+
+	    Calendar cal = Calendar.getInstance();
+	    cal.setTime(date);
+	    zeroTime(cal);
+
+	    Calendar now = Calendar.getInstance();
+	    zeroTime(now);
+
+	    // If date is before or equal to today
+	    return !cal.after(now);
+	}
+
+	private static void zeroTime(Calendar cal) {
+	    cal.set(Calendar.HOUR_OF_DAY, 0);
+	    cal.set(Calendar.MINUTE, 0);
+	    cal.set(Calendar.SECOND, 0);
+	    cal.set(Calendar.MILLISECOND, 0);
 	}
 
 }

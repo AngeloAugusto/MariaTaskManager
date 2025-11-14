@@ -15,11 +15,18 @@
 
 			<!-- Task Section -->
 			<vlayout id="taskSection" sclass="task-section" vflex="1">
-				<hlayout sclass="task-header">
-					<label id="lbSectionTitle" sclass="section-title"/>
-					<button id="btCreateTask" sclass="add-btn" iconSclass="z-icon-plus"/>
-				</hlayout>
-				<vlayout id="taskList" sclass="task-list"/>
+				<vlayout id="todayTaskSection" sclass="task-section-border" style="max-height: 300px; overflow: scroll">
+					<label value="Today" sclass="section-title"/>
+					<vlayout id="todayTaskList" sclass="task-list"/>
+				</vlayout>
+				<separator></separator>
+				<vlayout id="selectedSection" sclass="task-section-border" vflex="1">
+					<hlayout sclass="task-header">
+						<label id="lbSectionTitle" sclass="section-title"/>
+						<button id="btCreateTask" sclass="add-btn" iconSclass="z-icon-plus"/>
+					</hlayout>
+					<vlayout id="taskList" sclass="task-list"/>
+				</vlayout>
 			</vlayout>
 
 			<!-- Add Task Form (outside, right side) -->

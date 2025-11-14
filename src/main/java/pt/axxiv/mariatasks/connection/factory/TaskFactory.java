@@ -70,18 +70,19 @@ public class TaskFactory {
 			
 			t.setStartDate(c.getTime());
 			
-		}else if(oldTask instanceof TaskDate oldTaskDate) {
-			
-			Calendar c = Calendar.getInstance();
-			c.setTime(oldTaskDate.getSelectedDate());
-			c.add(Calendar.YEAR, 1);
-			c.set(Calendar.HOUR_OF_DAY, 0);
-			c.set(Calendar.MINUTE, 0);
-			c.set(Calendar.SECOND, 0);
-			c.set(Calendar.MILLISECOND, 0);
-			
-			t = new TaskDate(oldTask.getTitle(), oldTask.getNotes(), c.getTime(), oldTask.getSection(), oldTask.getOwnerId(), oldTask.getTimeOfTheDay());
 		}
+//		else if(oldTask instanceof TaskDate oldTaskDate) {
+//			
+//			Calendar c = Calendar.getInstance();
+//			c.setTime(oldTaskDate.getSelectedDate());
+//			c.add(Calendar.YEAR, 1);
+//			c.set(Calendar.HOUR_OF_DAY, 0);
+//			c.set(Calendar.MINUTE, 0);
+//			c.set(Calendar.SECOND, 0);
+//			c.set(Calendar.MILLISECOND, 0);
+//			
+//			t = new TaskDate(oldTask.getTitle(), oldTask.getNotes(), c.getTime(), oldTask.getSection(), oldTask.getOwnerId(), oldTask.getTimeOfTheDay());
+//		}
 		
 		return t;
     }
