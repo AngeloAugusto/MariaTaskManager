@@ -169,6 +169,13 @@ public class MainController extends SelectorComposer<Window> {
 		generateTodayTaskList(tasksToday);
 
 	}
+	
+
+
+	@Listen("onOK = #txTitle")
+	public void onEnterPress(Event event) {
+		onClickbtSaveNewTask(null);
+	}
 
 	private void generateTodayTaskList(List<Task> tasks) {
 		while (todayTaskList.getFirstChild() != null)
