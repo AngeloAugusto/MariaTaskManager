@@ -179,6 +179,9 @@ public class MainController extends SelectorComposer<Window> {
 	private void generateTodayTaskList(List<Task> tasks) {
 		while (todayTaskList.getFirstChild() != null)
 			todayTaskList.removeChild(todayTaskList.getFirstChild());
+	    
+	    if(tasks.size()<=0)
+	    	return;
 
 	    for (Task t : tasks) {
 	        Div row = new Div();
@@ -271,7 +274,7 @@ public class MainController extends SelectorComposer<Window> {
 	            t.setClosed();
 	            new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, t.getCloseDate());
 	            
-	            if(t instanceof TaskOnce) {
+	            if(t instanceof TaskOnce || t instanceof TaskDate) {
 	            	generateTaskList(tasksMap.get(selectedSection));
 	        		generateTodayTaskList(tasksToday);
 		            return;
