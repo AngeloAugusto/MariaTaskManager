@@ -6,7 +6,6 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -296,6 +295,9 @@ public class MainController extends SelectorComposer<Window> {
 	private void generateTaskList(List<Task> tasks) {
 	    while (taskList.getFirstChild() != null)
 	        taskList.removeChild(taskList.getFirstChild());
+	    
+	    if(tasks.size()<=0)
+	    	return;
 
 	    //tasks.stream().filter(t -> t.getSection().equals(selectedSection.getId())).collect(Collectors.toSet())
 	    for (Task t : tasks) {
@@ -703,22 +705,20 @@ public class MainController extends SelectorComposer<Window> {
 		
 		List<Task> tasksTemp = new TaskDAO().findAllOpenByUser(selectedSection, currentUser.getId());
 		List<Task> tasksTodayTemp = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
-		if(tasksTemp.size()>0 || tasksTodayTemp.size()>0) {
-
+		
+		if(tasksTemp != null && tasksTemp.size()>0) {
 			List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(tasksTemp.get(0).getSection())).findFirst().get());
 			if(ts.size()!=tasksTemp.size()) {
 				tasksMap.put(sections.stream().filter(s -> s.getId().equals(tasksTemp.get(0).getSection())).findFirst().get(), tasksTemp);
 				generateTaskList(tasksMap.get(selectedSection));
-				tasksToday = tasksTodayTemp;
-				generateTodayTaskList(tasksToday);
-			}
-			
-			if(tasksTodayTemp.size()!=tasksToday.size()) {
-				tasksToday = tasksTodayTemp;
-				generateTodayTaskList(tasksToday);
 			}
 		}
-    }
+		
+		if(tasksTodayTemp != null && tasksTodayTemp.size()!=tasksToday.size()) {
+				tasksToday = tasksTodayTemp;
+				generateTodayTaskList(tasksToday);
+		}
+	}
 	
 	private void addTaskToMap(Task t) {
 		List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get());
