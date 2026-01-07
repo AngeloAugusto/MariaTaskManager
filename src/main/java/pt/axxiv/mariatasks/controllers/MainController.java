@@ -115,12 +115,16 @@ public class MainController extends SelectorComposer<Window> {
         super.doBeforeComposeChildren(comp);
 
         // Check if logged in
-        if (!AuthUtil.isLoggedIn()) {
+        checkIsLogedIn();
+    }
+	
+	private void checkIsLogedIn() {
+		if (!AuthUtil.isLoggedIn()) {
             // Redirect to login page
             Executions.sendRedirect("/login.zul");
             return;
         }
-    }
+	}
 	
 	@Override
 	public void doAfterCompose(Window comp) throws Exception {
@@ -702,10 +706,13 @@ public class MainController extends SelectorComposer<Window> {
 	
 	@Listen("onTimer = #myTimer")
     public void runTask(Event event) {
+
+        // Check if logged in
+        checkIsLogedIn();
 		
 		if(inHistoric)
 			return;
-		
+        
 		List<Task> tasksTemp = new TaskDAO().findAllOpenByUser(selectedSection, currentUser.getId());
 		List<Task> tasksTodayTemp = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
 		

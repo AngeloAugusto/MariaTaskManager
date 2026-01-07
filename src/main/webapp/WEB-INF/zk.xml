@@ -12,4 +12,9 @@
 	<desktop-config>
 	    <theme-uri>style.css</theme-uri>
 	</desktop-config>
+	
+	<session-config>
+	    <device-type>ajax</device-type>    
+	    <timeout-uri>/login.zul</timeout-uri>    
+	</session-config>
 </zk>
