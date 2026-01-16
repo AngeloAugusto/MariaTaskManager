@@ -115,7 +115,7 @@ public class LoginController extends SelectorComposer<Window> {
 		}
 		
 		if(username.length()<=3) {
-			Clients.showNotification("Username is to small.", tbUsername);
+			Clients.showNotification("Username is to small.", tbNewUsername);
 			return;
 		}
 		
