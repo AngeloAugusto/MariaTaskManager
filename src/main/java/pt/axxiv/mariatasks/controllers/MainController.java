@@ -92,11 +92,15 @@ public class MainController extends SelectorComposer<Window> {
 	@Wire
 	private Popup ppConfirmDeletion;
 	@Wire
+	private Popup ppConfirmDeletionTask;
+	@Wire
 	private Textbox txSection;
 	@Wire
 	private Button btProfile;
 	@Wire
 	private Button btDeleteSection;
+	@Wire
+	private Button btDeleteTask;
 	@Wire
     private Timer myTimer;
 
@@ -231,6 +235,8 @@ public class MainController extends SelectorComposer<Window> {
 	        	if(editingTask == null || editingTask != t) {
 	        		openNewTaskWindow();
 		        	editingTask = t;
+
+		        	btDeleteTask.setVisible(true);
 	        	} else if(t == editingTask) {
 	        		closeNewTaskWindow();
 	        		editingTask = null;
@@ -240,7 +246,6 @@ public class MainController extends SelectorComposer<Window> {
 	        		return;
 	        	}
 	        	
-		        
 		        txTitle.setValue(editingTask.getTitle());
 		        txNotes.setValue(editingTask.getNotes());
 		        
@@ -352,6 +357,8 @@ public class MainController extends SelectorComposer<Window> {
 		        	if(editingTask == null || editingTask != t) {
 		        		openNewTaskWindow();
 			        	editingTask = t;
+
+			        	btDeleteTask.setVisible(true);
 		        	} else if(t == editingTask) {
 		        		closeNewTaskWindow();
 		        		editingTask = null;
@@ -607,6 +614,8 @@ public class MainController extends SelectorComposer<Window> {
 	    addTaskForm.setSclass("add-task-form");
 	    taskSection.setSclass("task-section");
 	    btCreateTask.setSclass("add-btn");
+
+    	btDeleteTask.setVisible(false);
 	}
 	
 	@Listen("onSelect = #cbFormat")
@@ -726,6 +735,32 @@ public class MainController extends SelectorComposer<Window> {
 	public void onClickbtEditTitleSection(Event e) {
 		editSectionTitle=true;
 		txSection.setValue(selectedSection.getTitle());
+	}
+	
+	@Listen("onClick = #btDeleteTask")
+	public void onClickbtDeleteTask(Event e) {
+		ppConfirmDeletionTask.open(btDeleteTask);
+	}
+	
+	@Listen("onClick = #btTaskYes")
+	public void onClickbtTaskYes(Event e) {
+		tasksMap.get(selectedSection).remove(editingTask);
+		
+		new TaskDAO().delete(editingTask.getId());
+		
+        generateTaskList(tasksMap.get(selectedSection));
+        
+		tasksToday = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
+		generateTodayTaskList(tasksToday);
+		
+		ppConfirmDeletionTask.close();
+		closeNewTaskWindow();
+		
+	}
+	
+	@Listen("onClick = #btTaskNo")
+	public void onClickbtTaskNo(Event e) {
+		ppConfirmDeletionTask.close();
 	}
 	
 	@Listen("onClick = #btDeleteSection")

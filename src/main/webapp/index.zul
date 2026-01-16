@@ -52,8 +52,10 @@
 			    <vlayout id="layoutForDate" visible="false" sclass="extra-fields">
 			    	<datebox id="dbSelectedDate"/>
 			    </vlayout>
-			   
-		        <button id="btSaveNewTask" sclass="save-btn" iconSclass="z-icon-check"/>
+			   	<hbox spacing="30px" pack="center" width="100%">
+			        <button id="btDeleteTask" sclass="save-btn" iconSclass="z-icon-trash" visible="false"/>
+			        <button id="btSaveNewTask" sclass="save-btn" iconSclass="z-icon-check"/>
+		        </hbox>
 			</vlayout>
 	
 		</div>
@@ -71,6 +73,15 @@
 			<hbox spacing="30px" pack="center" width="100%">
 		        <button id="btNo" sclass="add-btn rotate" iconSclass="z-icon-plus"/>
 		        <button id="btYes" sclass="save-btn" iconSclass="z-icon-check"/>
+			</hbox>
+		</popup>
+		
+		<popup id="ppConfirmDeletionTask" sclass="add-section" width="300px">
+			<label sclass="popupText" value="Are you sure you want to delete this task?" />
+			<separator/>
+			<hbox spacing="30px" pack="center" width="100%">
+		        <button id="btTaskNo" sclass="add-btn rotate" iconSclass="z-icon-plus"/>
+		        <button id="btTaskYes" sclass="save-btn" iconSclass="z-icon-check"/>
 			</hbox>
 		</popup>
 		
