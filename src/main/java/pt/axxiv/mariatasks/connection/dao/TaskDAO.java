@@ -201,6 +201,10 @@ public class TaskDAO {
         collection.deleteOne(eq(TaskFields.ID, id));
     }
 
+    public void deleteFromSection(ObjectId sectionId) {
+        collection.deleteMany(eq(TaskFields.SECTION, sectionId));
+    }
+
 	public void deleteAll() {
 		collection.deleteMany(new Document());
 	}

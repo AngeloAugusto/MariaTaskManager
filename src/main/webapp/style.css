@@ -246,6 +246,11 @@
 	color: white;
 }
 
+.popupText {
+	font-size: 14px;
+	color: white;
+}
+
 .line {
 	display: flex;
 	justify-content: space-between;

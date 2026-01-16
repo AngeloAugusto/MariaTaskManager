@@ -38,6 +38,7 @@ import pt.axxiv.mariatasks.connection.dao.SectionDAO;
 import pt.axxiv.mariatasks.connection.dao.TaskDAO;
 import pt.axxiv.mariatasks.connection.dao.UserDAO;
 import pt.axxiv.mariatasks.connection.factory.TaskFactory;
+import pt.axxiv.mariatasks.connection.labels.SectionFields;
 import pt.axxiv.mariatasks.connection.labels.TaskFields;
 import pt.axxiv.mariatasks.data.FrequencyTypes;
 import pt.axxiv.mariatasks.data.Section;
@@ -89,9 +90,13 @@ public class MainController extends SelectorComposer<Window> {
 	@Wire
 	private Popup ppAddSection;
 	@Wire
+	private Popup ppConfirmDeletion;
+	@Wire
 	private Textbox txSection;
 	@Wire
 	private Button btProfile;
+	@Wire
+	private Button btDeleteSection;
 	@Wire
     private Timer myTimer;
 
@@ -103,6 +108,7 @@ public class MainController extends SelectorComposer<Window> {
 
 	private boolean showSectionTitle = false;
 	private boolean inHistoric = false;
+	private boolean editSectionTitle = false;
 	private Section selectedSection;
 	
 	private Task editingTask = null;
@@ -649,6 +655,8 @@ public class MainController extends SelectorComposer<Window> {
 	
 	@Listen("onClick = #btAddSection")
 	public void onClickbtAddSection(Event e) {
+		editSectionTitle=false;
+		txSection.setValue("");
 		txSection.setFocus(true);
 	}
 	
@@ -668,11 +676,24 @@ public class MainController extends SelectorComposer<Window> {
 			return;
 		}
 		
-		Section section = new Section(title, "", currentUser.getId());
-		section = new SectionDAO().insert(section);
+		Section section = selectedSection;
+		if(editSectionTitle) {
 			
-		sections.add(section);
-		tasksMap.put(section, new ArrayList<Task>());
+			selectedSection.setTitle(txSection.getValue());
+			new SectionDAO().updateValue(selectedSection.getId(), SectionFields.TITLE, txSection.getValue());
+			
+			int index = sections.indexOf(section);
+			sections.remove(index);
+			sections.add(index, selectedSection);
+			
+			editSectionTitle=false;
+		}else {
+			section = new Section(title, "", currentUser.getId());
+			section = new SectionDAO().insert(section);
+			
+			sections.add(section);
+			tasksMap.put(section, new ArrayList<Task>());
+		}
 
 	    txSection.setValue("");
 	    ppAddSection.close();
@@ -700,8 +721,47 @@ public class MainController extends SelectorComposer<Window> {
 		generateTaskList(new TaskDAO().findAllClosed(currentUser.getId()));
 		btCreateTask.setSclass("add-btn rotate");
 	}
+
+	@Listen("onClick = #btEditTitleSection")
+	public void onClickbtEditTitleSection(Event e) {
+		editSectionTitle=true;
+		txSection.setValue(selectedSection.getTitle());
+	}
 	
-	
+	@Listen("onClick = #btDeleteSection")
+	public void onClickbtDeleteSection(Event e) {
+
+		if(sections.size()<=1) {
+			Clients.showNotification("Section can't be deleted.", btDeleteSection);
+			return;
+		}
+		
+		ppConfirmDeletion.open(btDeleteSection);
+	}
+
+	@Listen("onClick = #btYes")
+	public void onClickbtYes(Event e) {
+		
+		new TaskDAO().deleteFromSection(selectedSection.getId());
+		
+		new SectionDAO().delete(selectedSection.getId());
+		
+		sections.remove(selectedSection);
+		selectedSection = sections.get(0);
+        generateSectionList();
+        generateTaskList(tasksMap.get(selectedSection));
+        
+		tasksToday = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
+		generateTodayTaskList(tasksToday);
+		
+		ppConfirmDeletion.close();
+		
+	}
+
+	@Listen("onClick = #btNo")
+	public void onClickbtNo(Event e) {
+		ppConfirmDeletion.close();
+	}
 	
 	
 	@Listen("onTimer = #myTimer")
