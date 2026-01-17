@@ -1,7 +1,8 @@
-package pt.axxiv.mariatasks.auth;
+package pt.axxiv.mariataskswebapp.auth;
 
 import java.util.UUID;
 
+import pt.axxiv.mariatasks.crypt.CryptUtil;
 import pt.axxiv.mariatasks.data.User;
 
 public class AuthService {
@@ -13,7 +14,7 @@ public class AuthService {
 // VERY simple check: accept user 'admin' with password 'secret'
 		
 		
-		if (userBd != null && AuthUtil.checkPassword(password, userBd.getPassword())) {
+		if (userBd != null && CryptUtil.checkPassword(password, userBd.getPassword())) {
 			return generateTokenForUser(userBd.getUsername());
 		}
 		return null;

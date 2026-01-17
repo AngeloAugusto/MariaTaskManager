@@ -1,7 +1,8 @@
 package pt.axxiv.mariatasks.data;
 
 import org.bson.types.ObjectId;
-import pt.axxiv.mariatasks.auth.AuthUtil;
+
+import pt.axxiv.mariatasks.crypt.CryptUtil;
 
 public class User implements Comparable<User> {
 
@@ -16,7 +17,7 @@ public class User implements Comparable<User> {
 		super();
 		this.title = title;
 		this.username = username;
-		this.password = AuthUtil.hashPassword(password);
+		this.password = CryptUtil.hashPassword(password);
 	}
 
 	public ObjectId getId() {

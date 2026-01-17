@@ -1,6 +1,5 @@
-package pt.axxiv.mariatasks.auth;
+package pt.axxiv.mariataskswebapp.auth;
 
-import org.mindrot.jbcrypt.BCrypt;
 import org.zkoss.zk.ui.Sessions;
 
 public final class AuthUtil {
@@ -24,12 +23,4 @@ public final class AuthUtil {
 		Sessions.getCurrent().removeAttribute("currentTitle");
 		Sessions.getCurrent().invalidate();
 	}
-	
-	public static String hashPassword(String plainTextPassword) {
-        return BCrypt.hashpw(plainTextPassword, BCrypt.gensalt(12));
-    }
-
-    public static boolean checkPassword(String plainTextPassword, String hashedPassword) {
-        return BCrypt.checkpw(plainTextPassword, hashedPassword);
-    }
 }

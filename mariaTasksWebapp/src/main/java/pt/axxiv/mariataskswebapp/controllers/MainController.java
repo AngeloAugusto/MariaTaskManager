@@ -1,4 +1,4 @@
-package pt.axxiv.mariatasks.controllers;
+package pt.axxiv.mariataskswebapp.controllers;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,7 +33,6 @@ import org.zkoss.zul.Timer;
 import org.zkoss.zul.Vlayout;
 import org.zkoss.zul.Window;
 
-import pt.axxiv.mariatasks.auth.AuthUtil;
 import pt.axxiv.mariatasks.connection.dao.SectionDAO;
 import pt.axxiv.mariatasks.connection.dao.TaskDAO;
 import pt.axxiv.mariatasks.connection.dao.UserDAO;
@@ -49,6 +48,7 @@ import pt.axxiv.mariatasks.data.TaskDate;
 import pt.axxiv.mariatasks.data.TaskFormat;
 import pt.axxiv.mariatasks.data.TaskOnce;
 import pt.axxiv.mariatasks.data.User;
+import pt.axxiv.mariataskswebapp.auth.AuthUtil;
 
 public class MainController extends SelectorComposer<Window> {
 

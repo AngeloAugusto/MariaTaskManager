@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zk>
 
-	<window id="tasksTabWindow" border="none" height="100%" width="100%" style="background:#242526; color:#fff;" apply="pt.axxiv.mariatasks.controllers.MainController">
+	<window id="tasksTabWindow" border="none" height="100%" width="100%" style="background:#242526; color:#fff;" apply="pt.axxiv.mariataskswebapp.controllers.MainController">
 	<script src="custom-date-labels*.js" ></script>
 		<div sclass="main-container">
 			

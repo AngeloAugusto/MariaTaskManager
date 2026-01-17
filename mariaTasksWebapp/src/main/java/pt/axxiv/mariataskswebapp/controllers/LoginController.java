@@ -1,4 +1,4 @@
-package pt.axxiv.mariatasks.controllers;
+package pt.axxiv.mariataskswebapp.controllers;
 
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Sessions;
@@ -11,10 +11,10 @@ import org.zkoss.zul.Div;
 import org.zkoss.zul.Textbox;
 import org.zkoss.zul.Window;
 
-import pt.axxiv.mariatasks.auth.AuthService;
-import pt.axxiv.mariatasks.auth.AuthUtil;
 import pt.axxiv.mariatasks.connection.dao.UserDAO;
 import pt.axxiv.mariatasks.data.User;
+import pt.axxiv.mariataskswebapp.auth.AuthService;
+import pt.axxiv.mariataskswebapp.auth.AuthUtil;
 
 public class LoginController extends SelectorComposer<Window> {
 
