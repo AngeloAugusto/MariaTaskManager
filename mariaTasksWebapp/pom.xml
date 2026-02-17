@@ -106,6 +106,13 @@
 			<artifactId>mariatasks</artifactId>
 			<version>1.0.0</version>
 		</dependency>
+        
+        <dependency>
+		    <groupId>javax.servlet</groupId>
+		    <artifactId>javax.servlet-api</artifactId>
+		    <version>4.0.1</version>
+		    <scope>provided</scope>
+		</dependency>
     </dependencies>
 
     <build>
@@ -123,7 +130,6 @@
                     <release>21</release>
                     <showWarnings>true</showWarnings>
                     <showDeprecation>true</showDeprecation>
-                    <generatedSourcesDirectory>${project.build.directory}/generated-test-sources/test-annotations</generatedSourcesDirectory>
                 </configuration>
             </plugin>
 

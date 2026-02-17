@@ -59,6 +59,14 @@ public class UserDAO {
 	    return null;
 	}
 
+	public User findByRememberToken(String token) {
+	    Document doc = collection.find(eq(UserFields.REMEMBER_TOKEN, token)).first();
+	    if (doc != null) {
+	        return createFromDocument(doc);
+	    }
+	    return null;
+	}
+
 	public List<User> findAll() {
 	    List<User> users = new ArrayList<>();
 	    for (Document doc : collection.find()) {

@@ -10,6 +10,7 @@ public class User implements Comparable<User> {
 	private String title;
 	private String username;
 	private String password;
+	private String rememberToken;
 	
 	public User(){}
 
@@ -52,6 +53,14 @@ public class User implements Comparable<User> {
 		this.password = password;
 	}
 	
+	public String getRememberToken() {
+		return rememberToken;
+	}
+
+	public void setRememberToken(String rememberToken) {
+		this.rememberToken = rememberToken;
+	}
+
 	@Override
 	public int compareTo(User arg0) {
 		// TODO Auto-generated method stub

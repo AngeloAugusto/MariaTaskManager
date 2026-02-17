@@ -1,5 +1,8 @@
 package pt.axxiv.mariataskswebapp.controllers;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
+
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
@@ -12,6 +15,7 @@ import org.zkoss.zul.Textbox;
 import org.zkoss.zul.Window;
 
 import pt.axxiv.mariatasks.connection.dao.UserDAO;
+import pt.axxiv.mariatasks.connection.labels.UserFields;
 import pt.axxiv.mariatasks.data.User;
 import pt.axxiv.mariataskswebapp.auth.AuthService;
 import pt.axxiv.mariataskswebapp.auth.AuthUtil;
@@ -59,7 +63,9 @@ public class LoginController extends SelectorComposer<Window> {
 		
 		User userBd = new UserDAO().findByUsername(user);
 
-		generateToken(userBd, pass);
+		userBd.setRememberToken(generateToken(userBd, pass));
+		new UserDAO().updateValue(userBd.getId(), UserFields.REMEMBER_TOKEN, userBd.getRememberToken());
+		Executions.sendRedirect("/");
 
 	}
 
@@ -137,23 +143,32 @@ public class LoginController extends SelectorComposer<Window> {
 		}
 		
 		User user = new User(title, username, pass);
+		user.setRememberToken(generateToken(user, pass));
 		user = new UserDAO().insert(user);
 		
-		generateToken(user, pass);
+		
+		Executions.sendRedirect("/");
 		
 	}
 	
-	private void generateToken(User userBd, String pass) {
+	private String generateToken(User userBd, String pass) {
 		String token = authService.authenticate(userBd, pass);
 		if (token != null) {
 			Sessions.getCurrent().setAttribute(AuthUtil.SESSION_TOKEN_KEY, token);
 			Sessions.getCurrent().setAttribute("currentUserId", userBd.getId());
 			Sessions.getCurrent().setAttribute("currentTitle", userBd.getTitle());
-			Sessions.getCurrent().setMaxInactiveInterval(30 * 60);
-			Executions.sendRedirect("/");
+			Sessions.getCurrent().setMaxInactiveInterval(60 * 60 * 24 * 30);
+			
+			Cookie cookie = new Cookie("rememberMe", token);
+			cookie.setMaxAge(60 * 60 * 24 * 30); // 30 days
+			cookie.setPath("/");
+			HttpServletResponse response = (HttpServletResponse) Executions.getCurrent().getNativeResponse();
+			response.addCookie(cookie);
 		} else {
 			Clients.showNotification("Invalid username or password");
 		}
+		
+		return token;
 	}
 
 	
