@@ -282,6 +282,12 @@ public class MainController extends SelectorComposer<Window> {
 	        Button btDone = new Button(" ");
 	        btDone.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px;");
 	        btDone.addEventListener("onClick", e -> {
+	        	
+	        	if(editingTask != null) {
+	        		closeNewTaskWindow();
+	        		editingTask = null;
+	        	}
+	        	
 	            List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get());
 				ts.remove(t);
 				tasksMap.put(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get(), ts);
@@ -408,6 +414,12 @@ public class MainController extends SelectorComposer<Window> {
 		        Button btDone = new Button(" ");
 		        btDone.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px;");
 		        btDone.addEventListener("onClick", e -> {
+		        	
+		        	if(editingTask != null) {
+		        		closeNewTaskWindow();
+		        		editingTask = null;
+		        	}
+		        	
 		            List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get());
 					ts.remove(t);
 					tasksMap.put(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get(), ts);
