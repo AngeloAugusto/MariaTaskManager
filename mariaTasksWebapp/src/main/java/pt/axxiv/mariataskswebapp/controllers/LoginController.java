@@ -46,6 +46,8 @@ public class LoginController extends SelectorComposer<Window> {
 		
 		if(AuthUtil.isLoggedIn())
 			Executions.sendRedirect("/");
+		
+		comp.getPage().setTitle("MariaTasks - Login");
 
 	}
 

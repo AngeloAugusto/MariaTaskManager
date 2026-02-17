@@ -103,6 +103,8 @@ public class MainController extends SelectorComposer<Window> {
 	private Button btDeleteTask;
 	@Wire
     private Timer myTimer;
+	
+    private Window window;
 
 	private List<Section> sections = new ArrayList<Section>();
 	private List<Task> tasksToday = new ArrayList<Task>();
@@ -139,7 +141,7 @@ public class MainController extends SelectorComposer<Window> {
 	@Override
 	public void doAfterCompose(Window comp) throws Exception {
 		super.doAfterCompose(comp);
-		
+		window=comp;
 
 		currentUser = new UserDAO().findById((ObjectId) Sessions.getCurrent().getAttribute("currentUserId"));
 		
@@ -156,6 +158,8 @@ public class MainController extends SelectorComposer<Window> {
 		}
 		
 		selectedSection = sections.get(0);
+
+		window.getPage().setTitle("MariaTasks - "+selectedSection.getTitle());
 		
 		for(Section s : sections) {
 			tasksMap.put(s, new ArrayList<Task>());
@@ -468,6 +472,7 @@ public class MainController extends SelectorComposer<Window> {
 		    		closeHistoric();
 	            }
 	    		selectedSection = section;
+	    		window.getPage().setTitle("MariaTasks - "+selectedSection.getTitle());
 	            generateSectionList();
 	            generateTaskList(tasksMap.get(selectedSection));
 	    	});
@@ -795,6 +800,7 @@ public class MainController extends SelectorComposer<Window> {
 		
 		sections.remove(selectedSection);
 		selectedSection = sections.get(0);
+		window.getPage().setTitle("MariaTasks - "+selectedSection.getTitle());
         generateSectionList();
         generateTaskList(tasksMap.get(selectedSection));
         
