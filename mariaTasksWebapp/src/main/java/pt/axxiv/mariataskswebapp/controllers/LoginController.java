@@ -43,6 +43,9 @@ public class LoginController extends SelectorComposer<Window> {
 	@Override
 	public void doAfterCompose(Window comp) throws Exception {
 		super.doAfterCompose(comp);
+		
+		if(AuthUtil.isLoggedIn())
+			Executions.sendRedirect("/");
 
 	}
 
