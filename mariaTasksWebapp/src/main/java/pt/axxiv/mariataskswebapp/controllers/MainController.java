@@ -712,6 +712,8 @@ public class MainController extends SelectorComposer<Window> {
 			sections.remove(index);
 			sections.add(index, selectedSection);
 			
+			window.getPage().setTitle("MariaTasks - "+selectedSection.getTitle());
+			
 			editSectionTitle=false;
 		}else {
 			section = new Section(title, "", currentUser.getId());
