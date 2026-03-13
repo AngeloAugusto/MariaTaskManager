@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.bson.types.ObjectId;
 import org.zkoss.zk.ui.Executions;
@@ -75,6 +76,8 @@ public class MainController extends SelectorComposer<Window> {
 	private Textbox txNotes;
 	@Wire
 	private Combobox cbFormat;
+	@Wire
+	private Combobox cbSection;
 	@Wire
     private Vlayout layoutForFrequency;
 	@Wire
@@ -237,8 +240,8 @@ public class MainController extends SelectorComposer<Window> {
 	        
 	        row.addEventListener("onClick", e ->{
 	        	if(editingTask == null || editingTask != t) {
-	        		openNewTaskWindow();
 		        	editingTask = t;
+	        		openNewTaskWindow();
 
 		        	btDeleteTask.setVisible(true);
 	        	} else if(t == editingTask) {
@@ -365,8 +368,8 @@ public class MainController extends SelectorComposer<Window> {
 	        if(!inHistoric) {
 		        row.addEventListener("onClick", e ->{
 		        	if(editingTask == null || editingTask != t) {
-		        		openNewTaskWindow();
 			        	editingTask = t;
+		        		openNewTaskWindow();
 
 			        	btDeleteTask.setVisible(true);
 		        	} else if(t == editingTask) {
@@ -581,6 +584,7 @@ public class MainController extends SelectorComposer<Window> {
 		if(editingTask != null) {
 			task.setId(editingTask.getId());
 			task.setStartDate(editingTask.getStartDate());
+			task.setSection(cbSection.getSelectedItem().getValue());
 			editingTask = null;
 		}
 		
@@ -621,6 +625,22 @@ public class MainController extends SelectorComposer<Window> {
         taskSection.setSclass("task-section retracted");
         btCreateTask.setSclass("add-btn rotate");
         txTitle.setFocus(true);
+        
+        if(editingTask != null) {
+        	cbSection.setVisible(true);
+        	List<Section> tempSec = sections;
+        	Section taskSection = tempSec.stream().filter(e -> e.getId().equals(editingTask.getSection())).collect(Collectors.toList()).get(0);
+        	ListModelList<Section> sectionModelList = new ListModelList<Section>(tempSec);
+        	cbSection.setModel(sectionModelList);
+        	sectionModelList.addToSelection(taskSection);
+        	cbSection.setItemRenderer((item, data, index) -> {
+        		Section section = (Section) data;
+                item.setLabel(section.getTitle());
+                item.setValue(section.getId());
+            });
+        }else {
+        	cbSection.setVisible(false);
+        }
 	}
 	
 	private void closeNewTaskWindow() {

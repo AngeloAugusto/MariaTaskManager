@@ -52,6 +52,9 @@
 			    <vlayout id="layoutForDate" visible="false" sclass="extra-fields">
 			    	<datebox id="dbSelectedDate"/>
 			    </vlayout>
+			    
+			    <combobox id="cbSection" readonly="true" visible="false"/>
+			    
 			   	<hbox spacing="30px" pack="center" width="100%">
 			        <button id="btDeleteTask" sclass="save-btn" iconSclass="z-icon-trash" visible="false"/>
 			        <button id="btSaveNewTask" sclass="save-btn" iconSclass="z-icon-check"/>
