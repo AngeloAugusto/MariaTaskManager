@@ -681,7 +681,7 @@ public class MainController extends SelectorComposer<Window> {
 	}
 	
 	private void clearDateFields() {
-    	dbSelectedDate.setValue(null);	
+		dbSelectedDate.setValue(new Date());
 	}
 	
 	private void onSelectFrequencyOnTaskFormat() {
