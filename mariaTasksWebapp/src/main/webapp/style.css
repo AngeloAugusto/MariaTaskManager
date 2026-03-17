@@ -126,8 +126,8 @@
 	border: 1.5px solid #fff !important;
 }
 
-.menu-item.open .z-icon-image {
-	padding-right: 10px;
+.menu-item.open [class*="z-icon-"] {
+    padding-right: 10px;
 }
 
 .center-area {
@@ -357,6 +357,12 @@
 	font-size: 20px;
 	cursor: pointer;
 	transition: transform 0.2s ease;
+}
+
+.icon-grid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 5px; /* controls spacing precisely */
 }
 
 .add-section {

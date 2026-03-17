@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.bson.types.ObjectId;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
+import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.select.SelectorComposer;
 import org.zkoss.zk.ui.select.annotation.Listen;
 import org.zkoss.zk.ui.select.annotation.Wire;
@@ -28,6 +30,8 @@ import org.zkoss.zul.Intbox;
 import org.zkoss.zul.Label;
 import org.zkoss.zul.ListModelList;
 import org.zkoss.zul.Popup;
+import org.zkoss.zul.Row;
+import org.zkoss.zul.Rows;
 import org.zkoss.zul.Textbox;
 import org.zkoss.zul.Timebox;
 import org.zkoss.zul.Timer;
@@ -106,7 +110,17 @@ public class MainController extends SelectorComposer<Window> {
 	private Button btDeleteTask;
 	@Wire
     private Timer myTimer;
-	
+	@Wire
+    private Div iconContainer;
+    @Wire
+    private Button btAddSection;
+    @Wire
+    private Button btIcon;
+    @Wire
+	private Popup ppIcon;
+    @Wire
+    private Button btEditTitleSection;
+
     private Window window;
 
 	private List<Section> sections = new ArrayList<Section>();
@@ -123,6 +137,32 @@ public class MainController extends SelectorComposer<Window> {
 	private Task editingTask = null;
 
 	private User currentUser;
+	
+	List<String> icons = Arrays.asList(
+		    "home", "search", "user", "cog", "cogs", "wrench", "trash-o",
+		    "edit", "pencil", "pencil-square-o", "save", "print",
+		    "bell", "bell-o", "envelope", "envelope-o", "calendar", "calendar-o",
+		    "clock-o", "heart", "star", "star-o", "bookmark", "bookmark-o",
+		    "tag", "tags", "book", "file", "files-o", "folder", "folder-open",
+		    "folder-o", "folder-open-o",
+		    "check", "times", "times-circle", "times-circle-o", "close", 
+		    "remove", "warning", "info", "question", "ban",
+		    "play", "pause", "stop", "video-camera", "camera", "camera-retro", "image",
+		    "shopping-cart", "shopping-bag", "shopping-basket", "credit-card",
+		    "money", "dollar", "euro", "gift", "barcode",
+		    "facebook-square", "twitter-square", "linkedin-square", "github-square",
+		    "google-plus-square", "instagram", "youtube-play",
+		    "briefcase", "building", "desktop", "file-text", "users",
+		    "heartbeat", "medkit", "bicycle", "apple", "paw",
+		    "graduation-cap", "calculator", "flask", "globe",
+		    "plane", "car", "train", "map-marker", "suitcase",
+		    "cutlery", "tv", "paint-brush", "trash",
+		    "bank", "pie-chart",
+		    "lightbulb-o", "magic", "rocket", "flag", "bullseye",
+		    "film", "music", "gamepad", "headphones", "ticket",
+		    "cloud", "database", "coffee", "bed", "leaf", "futbol-o", 
+		    "trophy", "fire", "phone", "comments"
+		);
 	
 	
 	@Override
@@ -155,7 +195,7 @@ public class MainController extends SelectorComposer<Window> {
 		sections = new SectionDAO().findAllByUser(currentUser.getId());
 		
 		if(sections.size()<=0) {
-			Section section = new Section("To Do", "", currentUser.getId());
+			Section section = new Section("To Do", "z-icon-pencil-square-o", currentUser.getId());
 			section = new SectionDAO().insert(section);
 			sections.add(section);
 		}
@@ -187,7 +227,14 @@ public class MainController extends SelectorComposer<Window> {
 		generateSectionList();
 		generateTaskList(tasksMap.get(selectedSection));
 		generateTodayTaskList(tasksToday);
+		
+		createIconGrid();
 
+	}
+	
+	@Listen("onClick = #btIcon")
+	public void onClickBtIcon(Event e) {
+	    ppIcon.open(btIcon, "before_end");
 	}
 	
 
@@ -464,7 +511,7 @@ public class MainController extends SelectorComposer<Window> {
 	    for(Section section : sections) {
 	    	Button bt = new Button();
 	    	bt.setSclass("menu-item collapsed" + (selectedSection.equals(section) ? " selected" : ""));
-	    	bt.setIconSclass("z-icon-image");
+	    	bt.setIconSclass(section.getIcon());
 	    	if(showSectionTitle) {
 		    	bt.setSclass("menu-item open" + (selectedSection.equals(section) ? " selected" : ""));
 	    		bt.setLabel(section.getTitle());
@@ -704,6 +751,8 @@ public class MainController extends SelectorComposer<Window> {
 		editSectionTitle=false;
 		txSection.setValue("");
 		txSection.setFocus(true);
+		
+		ppAddSection.open(btAddSection, "before_start");
 	}
 	
 	@Listen("onOK = #txSection")
@@ -713,11 +762,17 @@ public class MainController extends SelectorComposer<Window> {
 
 	@Listen("onClick = #btSaveNewSection")
 	public void onClickbtSaveNewSection(Event e) {
-		String title = txSection.getValue();
+		String title = txSection.getValue().trim();
 		
-		Section sectionToChec = new SectionDAO().findByTitle(title);
-		if(sectionToChec!=null) {
+		Section sectionToChec = new SectionDAO().findByTitle(title, currentUser.getId());
+		if(sectionToChec!=null && !sectionToChec.getId().equals(selectedSection.getId())) {
 			Clients.showNotification("Section already exists.", txSection);
+			txSection.setFocus(true);
+			return;
+		}
+		
+		if(title==null || title.isBlank() || title.isEmpty()) {
+			Clients.showNotification("Title cannot be empty", txSection);
 			txSection.setFocus(true);
 			return;
 		}
@@ -726,7 +781,9 @@ public class MainController extends SelectorComposer<Window> {
 		if(editSectionTitle) {
 			
 			selectedSection.setTitle(txSection.getValue());
+			selectedSection.setIcon(btIcon.getIconSclass());
 			new SectionDAO().updateValue(selectedSection.getId(), SectionFields.TITLE, txSection.getValue());
+			new SectionDAO().updateValue(selectedSection.getId(), SectionFields.ICON, btIcon.getIconSclass());
 			
 			int index = sections.indexOf(section);
 			sections.remove(index);
@@ -736,7 +793,7 @@ public class MainController extends SelectorComposer<Window> {
 			
 			editSectionTitle=false;
 		}else {
-			section = new Section(title, "", currentUser.getId());
+			section = new Section(title, btIcon.getIconSclass(), currentUser.getId());
 			section = new SectionDAO().insert(section);
 			
 			sections.add(section);
@@ -772,8 +829,10 @@ public class MainController extends SelectorComposer<Window> {
 
 	@Listen("onClick = #btEditTitleSection")
 	public void onClickbtEditTitleSection(Event e) {
+		ppAddSection.open(btEditTitleSection, "after_start");
 		editSectionTitle=true;
 		txSection.setValue(selectedSection.getTitle());
+		btIcon.setIconSclass(selectedSection.getIcon());
 	}
 	
 	@Listen("onClick = #btDeleteTask")
@@ -864,6 +923,22 @@ public class MainController extends SelectorComposer<Window> {
 				generateTodayTaskList(tasksToday);
 		}
 	}
+	
+	private void createIconGrid() {
+
+		for (String icon : icons) {
+		    Button btn = new Button();
+		    btn.setSclass("add-btn");
+		    btn.setIconSclass("z-icon-" + icon);
+
+		    btn.addEventListener(Events.ON_CLICK, e -> {
+		        btIcon.setIconSclass("z-icon-" + icon);
+		        ppIcon.close();
+		    });
+
+		    iconContainer.appendChild(btn);
+		}
+    }
 	
 	private void addTaskToMap(Task t) {
 		List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get());

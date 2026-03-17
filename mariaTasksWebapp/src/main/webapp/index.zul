@@ -9,7 +9,7 @@
 			<div id="sidebar" sclass="sidebar collapsed">			
 				<button id="btToggleMenu" sclass="menu-btn" iconSclass="z-icon-bars"/>
 				<vlayout id="menuItems" sclass="menu-items"></vlayout>
-				<button id="btAddSection" sclass="floating-btn" iconSclass="z-icon-plus" popup="ppAddSection, position=before_start" />
+				<button id="btAddSection" sclass="floating-btn" iconSclass="z-icon-plus"/>
 				<button id="btProfile" sclass="profile-btn" iconSclass="z-icon-user" popup="ppProfile, position=before_start" />
 			</div>
 
@@ -24,7 +24,7 @@
 					<hlayout sclass="task-header">
 					<hlayout spacing="7px" sclass="z-valign-middle">
 						<label id="lbSectionTitle" sclass="section-title"/>
-						<button id="btEditTitleSection" sclass="add-btn" iconSclass="z-icon-pencil" popup="ppAddSection, position=after_start"/>
+						<button id="btEditTitleSection" sclass="add-btn" iconSclass="z-icon-pencil"/>
 						<button id="btDeleteSection" sclass="add-btn" iconSclass="z-icon-trash-o "/>
 					</hlayout>
 						<button id="btCreateTask" sclass="add-btn" iconSclass="z-icon-plus"/>
@@ -65,8 +65,14 @@
 		<timer id="myTimer" delay="500" repeats="true"/>
 		
 		<popup id="ppAddSection" sclass="add-section" width="300px">
-		    <textbox id="txSection" placeholder="Section Title"/>
+			<hbox>
+			    <button id="btIcon" iconSclass="z-icon-image" sclass="add-btn"/>
+			    <textbox id="txSection" placeholder="Section Title"/>
+		    </hbox>
 		    <separator />
+			<popup id="ppIcon" sclass="add-section" width="370px" >
+			    <div id="iconContainer" sclass="icon-grid"/>
+			</popup>
 	        <button id="btSaveNewSection" sclass="save-btn" iconSclass="z-icon-check"/>
 		</popup>
 		
@@ -93,6 +99,7 @@
 			<separator/>
 			<button id="btLogout" label="Logout" sclass="logout-btn" />
 		</popup>
+		
 	</window>
 	
 </zk>

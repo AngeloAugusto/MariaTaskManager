@@ -6,14 +6,14 @@ public class Section implements Comparable<Section> {
 
 	private ObjectId id;
 	private String title;
-	private String imgPath;
+	private String icon;
 	private ObjectId ownerId;
 	
 	public Section(){}
 	
-	public Section(String title, String imgPath, ObjectId ownerId) {
+	public Section(String title, String icon, ObjectId ownerId) {
 		this.title=title;
-		this.imgPath=imgPath;
+		this.icon=icon;
 		this.ownerId=ownerId;
 	}
 
@@ -33,12 +33,15 @@ public class Section implements Comparable<Section> {
 		this.title = title;
 	}
 
-	public String getImgPath() {
-		return imgPath;
+	public String getIcon() {
+		if (icon==null) {
+			icon = "z-icon-image";
+		}
+		return icon;
 	}
 
-	public void setImgPath(String imgPath) {
-		this.imgPath = imgPath;
+	public void setIcon(String icon) {
+		this.icon = icon;
 	}
 
 	public ObjectId getOwnerId() {

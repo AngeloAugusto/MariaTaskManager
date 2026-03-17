@@ -11,6 +11,7 @@ import pt.axxiv.mariatasks.connection.MongoDBConnectionOffline;
 import pt.axxiv.mariatasks.connection.labels.SectionFields;
 import pt.axxiv.mariatasks.data.Section;
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.and;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class SectionDAO {
 
 	    section.setId(doc.getObjectId(SectionFields.ID));
 	    section.setTitle(doc.getString(SectionFields.TITLE));
-	    section.setImgPath(doc.getString(SectionFields.IMGPATH));
+	    section.setIcon(doc.getString(SectionFields.ICON));
 	    section.setOwnerId(doc.getObjectId(SectionFields.OWNER));
 	    
 	    return section;
@@ -35,7 +36,7 @@ public class SectionDAO {
 	
 	public Section insert(Section section) {
         Document doc = new Document(SectionFields.TITLE, section.getTitle())
-        		.append(SectionFields.IMGPATH, section.getImgPath())
+        		.append(SectionFields.ICON, section.getIcon())
         		.append(SectionFields.OWNER, section.getOwnerId());
         
         collection.insertOne(doc);
@@ -51,8 +52,8 @@ public class SectionDAO {
 	    return null;
 	}
 
-	public Section findByTitle(String title) {
-	    Document doc = collection.find(eq(SectionFields.TITLE, title)).first();
+	public Section findByTitle(String title, ObjectId userId) {
+	    Document doc = collection.find(and(eq(SectionFields.TITLE, title),eq(SectionFields.OWNER, userId))).first();
 	    if (doc != null) {
 	        return createFromDocument(doc);
 	    }
