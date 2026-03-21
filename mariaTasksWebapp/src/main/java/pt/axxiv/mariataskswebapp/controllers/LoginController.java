@@ -63,15 +63,17 @@ public class LoginController extends SelectorComposer<Window> {
 	
 	@Listen("onClick = #btLogin")
 	public void onCliclbtLogin(Event event) {
-		String user = tbUsername.getValue();
-		String pass = tbPassword.getValue();
-		
-		User userBd = new UserDAO().findByUsername(user);
-
-		userBd.setRememberToken(generateToken(userBd, pass));
-		new UserDAO().updateValue(userBd.getId(), UserFields.REMEMBER_TOKEN, userBd.getRememberToken());
-		Executions.sendRedirect("/");
-
+	    String user = tbUsername.getValue();
+	    String pass = tbPassword.getValue();
+	    
+	    User userBd = new UserDAO().findByUsername(user);
+	    
+	    String token = generateToken(userBd, pass);
+	    if (token != null) {
+	        userBd.setRememberToken(token);
+	        new UserDAO().updateValue(userBd.getId(), UserFields.REMEMBER_TOKEN, token);
+	        Executions.sendRedirect("/");
+	    }
 	}
 
 	@Listen("onClick = #btRegister")
@@ -176,23 +178,4 @@ public class LoginController extends SelectorComposer<Window> {
 		return token;
 	}
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 }
