@@ -191,29 +191,13 @@ public class MainController extends SelectorComposer<Window> {
 		if(currentUser == null) {
 			return;
 		}
-		
-		sections = new SectionDAO().findAllByUser(currentUser.getId());
-		
-		if(sections.size()<=0) {
-			Section section = new Section("To Do", "z-icon-pencil-square-o", currentUser.getId());
-			section = new SectionDAO().insert(section);
-			sections.add(section);
-		}
-		
+
+		updateSections();
 		selectedSection = sections.get(0);
+		updateTaskMap();
 
 		window.getPage().setTitle("MariaTasks - "+selectedSection.getTitle());
 		
-		for(Section s : sections) {
-			tasksMap.put(s, new ArrayList<Task>());
-		}
-		
-		for(Task t : new TaskDAO().findAllOpenByUser(currentUser.getId())) {
-			addTaskToMap(t);
-			
-		}
-		
-		tasksToday = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
 		
 		taskFormatListModelList = new ListModelList<TaskFormat>(TaskFormat.values());
 		cbFormat.setModel(taskFormatListModelList);
@@ -285,89 +269,84 @@ public class MainController extends SelectorComposer<Window> {
 	            textContainer.appendChild(closedAt);
 	        }
 	        
-	        row.addEventListener("onClick", e ->{
-	        	if(editingTask == null || editingTask != t) {
-		        	editingTask = t;
-	        		openNewTaskWindow();
-
-		        	btDeleteTask.setVisible(true);
-	        	} else if(t == editingTask) {
-	        		closeNewTaskWindow();
-	        		editingTask = null;
-	        		return;
-	        	}else {
-	        		System.out.println("NOW WHAT???");
-	        		return;
-	        	}
-	        	
-		        txTitle.setValue(editingTask.getTitle());
-		        txNotes.setValue(editingTask.getNotes());
-		        
-		        if(editingTask.getTimeOfTheDay()!=null)
-		        	tbTime.setValue(localTimeToDate(editingTask.getTimeOfTheDay()));
-		       
-		        if(editingTask instanceof TaskOnce) {
-		        	taskFormatListModelList.addToSelection(TaskFormat.ONCE);
-		        	
-		        	onSelectDefaultOnTaskFormat();
-		        	
-		        }else if(editingTask instanceof TaskDaily) {
-		        	taskFormatListModelList.addToSelection(TaskFormat.EVERY_DAY);
-		        	
-		        	onSelectDefaultOnTaskFormat();
-		        	
-		        }else if(editingTask instanceof TaskCustom tCostum) {
-		        	taskFormatListModelList.addToSelection(TaskFormat.FREQUENCY);
-		        	ibPeriod.setValue(tCostum.getPeriod());
-		        	frequencyFormatListModelList.addToSelection(tCostum.getFrequencyTypes());
-
-					onSelectFrequencyOnTaskFormat();
-					
-		        } else if(editingTask instanceof TaskDate tDate) {
-		        	taskFormatListModelList.addToSelection(TaskFormat.DATE);
-		        	dbSelectedDate.setValue(tDate.getSelectedDate());
-		        	
-		        	onSelectDateOnTaskFormat();
-		        } 
-	        });
+	        row.addEventListener("onClick", e -> onClickOnTaskRow(t));
 	        row.appendChild(textContainer);
 
 	        // Done button
 	        Button btDone = new Button(" ");
 	        btDone.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px;");
-	        btDone.addEventListener("onClick", e -> {
-	        	
-	        	if(editingTask != null) {
-	        		closeNewTaskWindow();
-	        		editingTask = null;
-	        	}
-	        	
-	            List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get());
-				ts.remove(t);
-				tasksMap.put(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get(), ts);
-				tasksToday.remove(t);
-	            t.setClosed();
-	            new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, t.getCloseDate());
-	            
-	            if(t instanceof TaskOnce || t instanceof TaskDate) {
-	            	generateTaskList(tasksMap.get(selectedSection));
-	        		generateTodayTaskList(tasksToday);
-		            return;
-	            }
-
-            	Task task = TaskFactory.createRollingTask(t);
-            	new TaskDAO().insert(task);
-            	
-            	tasksToday = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
-            	
-            	generateTaskList(tasksMap.get(selectedSection));
-        		generateTodayTaskList(tasksToday);
-	        });
+	        btDone.addEventListener("onClick", e -> onClickDone(t));
 	        row.appendChild(btDone);
 	        
 
 	        todayTaskList.appendChild(row);
 	    }
+	}
+	
+	private void onClickDone(Task t) {
+		if(editingTask != null) {
+    		closeNewTaskWindow();
+    		editingTask = null;
+    	}
+		
+        t.setClosed();
+        new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, t.getCloseDate());
+        
+        Task task = TaskFactory.createRollingTask(t);
+        if(task != null) {
+	    	new TaskDAO().insert(task);
+        }
+        
+        updateTaskMap();
+        
+		generateTodayTaskList(tasksToday);
+        generateTaskList(tasksMap.get(selectedSection));
+	}
+	
+	private void onClickOnTaskRow(Task t) {
+		if(editingTask == null || editingTask != t) {
+        	editingTask = t;
+    		openNewTaskWindow();
+
+        	btDeleteTask.setVisible(true);
+    	} else if(t == editingTask) {
+    		closeNewTaskWindow();
+    		editingTask = null;
+    		return;
+    	}else {
+    		System.out.println("NOW WHAT???");
+    		return;
+    	}
+    	
+        txTitle.setValue(editingTask.getTitle());
+        txNotes.setValue(editingTask.getNotes());
+        
+        if(editingTask.getTimeOfTheDay()!=null)
+        	tbTime.setValue(localTimeToDate(editingTask.getTimeOfTheDay()));
+       
+        if(editingTask instanceof TaskOnce) {
+        	taskFormatListModelList.addToSelection(TaskFormat.ONCE);
+        	
+        	onSelectDefaultOnTaskFormat();
+        	
+        }else if(editingTask instanceof TaskDaily) {
+        	taskFormatListModelList.addToSelection(TaskFormat.EVERY_DAY);
+        	
+        	onSelectDefaultOnTaskFormat();
+        	
+        }else if(editingTask instanceof TaskCustom tCostum) {
+        	taskFormatListModelList.addToSelection(TaskFormat.FREQUENCY);
+        	ibPeriod.setValue(tCostum.getPeriod());
+        	frequencyFormatListModelList.addToSelection(tCostum.getFrequencyTypes());
+
+			onSelectFrequencyOnTaskFormat();
+			
+        } else if(editingTask instanceof TaskDate tDate) {
+        	taskFormatListModelList.addToSelection(TaskFormat.DATE);
+        	dbSelectedDate.setValue(tDate.getSelectedDate());
+        	
+        	onSelectDateOnTaskFormat();
+        } 
 	}
 
 	private void generateTaskList(List<Task> tasks) {
@@ -413,52 +392,7 @@ public class MainController extends SelectorComposer<Window> {
 	        }
 	        
 	        if(!inHistoric) {
-		        row.addEventListener("onClick", e ->{
-		        	if(editingTask == null || editingTask != t) {
-			        	editingTask = t;
-		        		openNewTaskWindow();
-
-			        	btDeleteTask.setVisible(true);
-		        	} else if(t == editingTask) {
-		        		closeNewTaskWindow();
-		        		editingTask = null;
-		        		return;
-		        	}else {
-		        		System.out.println("NOW WHAT???");
-		        		return;
-		        	}
-		        	
-			        
-			        txTitle.setValue(editingTask.getTitle());
-			        txNotes.setValue(editingTask.getNotes());
-			        
-			        if(editingTask.getTimeOfTheDay()!=null)
-			        	tbTime.setValue(localTimeToDate(editingTask.getTimeOfTheDay()));
-			       
-			        if(editingTask instanceof TaskOnce) {
-			        	taskFormatListModelList.addToSelection(TaskFormat.ONCE);
-			        	
-			        	onSelectDefaultOnTaskFormat();
-			        	
-			        }else if(editingTask instanceof TaskDaily) {
-			        	taskFormatListModelList.addToSelection(TaskFormat.EVERY_DAY);
-			        	
-			        	onSelectDefaultOnTaskFormat();
-			        	
-			        }else if(editingTask instanceof TaskCustom tCostum) {
-			        	taskFormatListModelList.addToSelection(TaskFormat.FREQUENCY);
-			        	ibPeriod.setValue(tCostum.getPeriod());
-			        	frequencyFormatListModelList.addToSelection(tCostum.getFrequencyTypes());
-	
-						onSelectFrequencyOnTaskFormat();
-						
-			        } else if(editingTask instanceof TaskDate tDate) {
-			        	taskFormatListModelList.addToSelection(TaskFormat.DATE);
-			        	dbSelectedDate.setValue(tDate.getSelectedDate());
-			        	
-			        	onSelectDateOnTaskFormat();
-			        } 
-		        });
+		        row.addEventListener("onClick", e ->onClickOnTaskRow(t));
 	        }
 
 	        row.appendChild(textContainer);
@@ -467,34 +401,7 @@ public class MainController extends SelectorComposer<Window> {
 	        if(!inHistoric) {
 		        Button btDone = new Button(" ");
 		        btDone.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px;");
-		        btDone.addEventListener("onClick", e -> {
-		        	
-		        	if(editingTask != null) {
-		        		closeNewTaskWindow();
-		        		editingTask = null;
-		        	}
-		        	
-		            List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get());
-					ts.remove(t);
-					tasksMap.put(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get(), ts);
-					tasksToday.remove(t);
-		            t.setClosed();
-		            new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, t.getCloseDate());
-		            
-		            if(t instanceof TaskOnce || t instanceof TaskDate) {
-		            	generateTaskList(tasksMap.get(selectedSection));
-		        		generateTodayTaskList(tasksToday);
-			            return;
-		            }
-	
-	            	Task task = TaskFactory.createRollingTask(t);
-	            	new TaskDAO().insert(task);
-
-	    			tasksToday = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
-	            	
-	            	generateTaskList(tasksMap.get(selectedSection));
-	        		generateTodayTaskList(tasksToday);
-		        });
+		        btDone.addEventListener("onClick", e -> onClickDone(t));
 		        row.appendChild(btDone);
 	        }
 
@@ -842,7 +749,7 @@ public class MainController extends SelectorComposer<Window> {
 	
 	@Listen("onClick = #btTaskYes")
 	public void onClickbtTaskYes(Event e) {
-		tasksMap.get(selectedSection).remove(editingTask);
+		removeTaskFromMap(editingTask);
 		
 		new TaskDAO().delete(editingTask.getId());
 		
@@ -898,31 +805,31 @@ public class MainController extends SelectorComposer<Window> {
 	}
 	
 	
-	@Listen("onTimer = #myTimer")
-    public void runTask(Event event) {
-
-        // Check if logged in
-        checkIsLogedIn();
-		
-		if(inHistoric)
-			return;
-        
-		List<Task> tasksTemp = new TaskDAO().findAllOpenByUser(selectedSection, currentUser.getId());
-		List<Task> tasksTodayTemp = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
-		
-		if(tasksTemp != null && tasksTemp.size()>0) {
-			List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(tasksTemp.get(0).getSection())).findFirst().get());
-			if(ts.size()!=tasksTemp.size()) {
-				tasksMap.put(sections.stream().filter(s -> s.getId().equals(tasksTemp.get(0).getSection())).findFirst().get(), tasksTemp);
-				generateTaskList(tasksMap.get(selectedSection));
-			}
-		}
-		
-		if(tasksTodayTemp != null && tasksTodayTemp.size()!=tasksToday.size()) {
-				tasksToday = tasksTodayTemp;
-				generateTodayTaskList(tasksToday);
-		}
-	}
+//	@Listen("onTimer = #myTimer")
+//    public void runTask(Event event) {
+//
+//        // Check if logged in
+//        checkIsLogedIn();
+//		
+//		if(inHistoric)
+//			return;
+//        
+//		List<Task> tasksTemp = new TaskDAO().findAllOpenByUserAndSection(selectedSection, currentUser.getId());
+//		List<Task> tasksTodayTemp = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
+//		
+//		if(tasksTemp != null && tasksTemp.size()>0) {
+//			List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(tasksTemp.get(0).getSection())).findFirst().get());
+//			if(ts.size()!=tasksTemp.size()) {
+//				tasksMap.put(sections.stream().filter(s -> s.getId().equals(tasksTemp.get(0).getSection())).findFirst().get(), tasksTemp);
+//				generateTaskList(tasksMap.get(selectedSection));
+//			}
+//		}
+//		
+//		if(tasksTodayTemp != null && tasksTodayTemp.size()!=tasksToday.size()) {
+//				tasksToday = tasksTodayTemp;
+//				generateTodayTaskList(tasksToday);
+//		}
+//	}
 	
 	private void createIconGrid() {
 
@@ -944,6 +851,35 @@ public class MainController extends SelectorComposer<Window> {
 		List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get());
 		ts.add(t);
 		tasksMap.put(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get(), ts);
+	}
+	
+	private void removeTaskFromMap(Task t) {
+		List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get());
+		ts.remove(t);
+		tasksMap.put(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get(), ts);
+	}
+	
+	private void updateTaskMap() {
+		tasksMap = new HashMap<Section, List<Task>>();
+		for(Section s : sections) {
+			tasksMap.put(s, new ArrayList<Task>());
+		}
+		
+		for(Task t : new TaskDAO().findAllOpenByUser(currentUser.getId())) {
+			addTaskToMap(t);
+		}
+		
+		tasksToday = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
+	}
+	
+	private void updateSections() {
+		sections = new SectionDAO().findAllByUser(currentUser.getId());
+		
+		if(sections.size()<=0) {
+			Section section = new Section("To Do", "z-icon-pencil-square-o", currentUser.getId());
+			section = new SectionDAO().insert(section);
+			sections.add(section);
+		}
 	}
 	
 	public static Date localTimeToDate(LocalTime localTime) {

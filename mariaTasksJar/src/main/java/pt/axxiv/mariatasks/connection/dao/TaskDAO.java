@@ -136,7 +136,7 @@ public class TaskDAO {
     }
 
 
-    public List<Task> findAllOpenByUser(Section section, ObjectId userId) {
+    public List<Task> findAllOpenByUserAndSection(Section section, ObjectId userId) {
         List<Task> tasks = new ArrayList<>();
         for (Document doc : collection.find(and(eq(TaskFields.CLOSE_DATE, null),eq(TaskFields.OWNER, userId)))) {
         	Task task = createFromDocument(doc);
