@@ -8,6 +8,8 @@ import java.util.Date;
 
 import org.bson.types.ObjectId;
 
+import pt.axxiv.mariatasks.connection.dao.SectionDAO;
+
 public class Task implements Comparable<Task> {
 
 	private ObjectId id;
@@ -107,6 +109,11 @@ public class Task implements Comparable<Task> {
 
 	public void setOwnerId(ObjectId ownerId) {
 		this.ownerId = ownerId;
+	}
+	
+	
+	public Section getSectionClass() {
+		return new SectionDAO().findById(this.section);
 	}
 
 	public String timeFormated() {

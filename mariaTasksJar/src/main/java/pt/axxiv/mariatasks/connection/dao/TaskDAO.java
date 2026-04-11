@@ -229,5 +229,67 @@ public class TaskDAO {
 	    cal.set(Calendar.SECOND, 0);
 	    cal.set(Calendar.MILLISECOND, 0);
 	}
+	
+	public Task update(Task task) {
+	    if (task.getId() == null) {
+	        throw new IllegalArgumentException("Task ID cannot be null for update operation");
+	    }
+	    
+	    // Check if task exists
+	    Document existingDoc = collection.find(eq(TaskFields.ID, task.getId())).first();
+	    if (existingDoc == null) {
+	        throw new IllegalArgumentException("Task not found with id: " + task.getId());
+	    }
+	    
+	    // Create update document
+	    Document updateDoc = new Document();
+	    
+	    // Add all fields that should be updated
+	    if (task.getTitle() != null) {
+	        updateDoc.append(TaskFields.TITLE, task.getTitle());
+	    }
+	    if (task.getNotes() != null) {
+	        updateDoc.append(TaskFields.NOTES, task.getNotes());
+	    }
+	    if (task.getStartDate() != null) {
+	        updateDoc.append(TaskFields.START_DATE, task.getStartDate());
+	    }
+	    if (task.getCloseDate() != null) {
+	        updateDoc.append(TaskFields.CLOSE_DATE, task.getCloseDate());
+	    }
+	    if (task.getParent() != null) {
+	        updateDoc.append(TaskFields.PARENT, task.getParent());
+	    }
+	    if (task.getSection() != null) {
+	        updateDoc.append(TaskFields.SECTION, task.getSection());
+	    }
+	    if (task.getTimeOfTheDay() != null) {
+	        updateDoc.append(TaskFields.TIME_OF_THE_DAY, task.getTimeOfTheDay());
+	    }
+	    if (task.getOwnerId() != null) {
+	        updateDoc.append(TaskFields.OWNER, task.getOwnerId());
+	    }
+	    
+	    // Handle task type specific fields
+	    if (task instanceof TaskCustom custom) {
+	    	updateDoc.append(TaskFields.PERIOD, custom.getPeriod());
+	        if (custom.getFrequencyTypes() != null) {
+	            updateDoc.append(TaskFields.FREQUENCY_TYPE, custom.getFrequencyTypes().getValue());
+	        }
+	    }
+	    if (task instanceof TaskDate dateTask) {
+	        if (dateTask.getSelectedDate() != null) {
+	            updateDoc.append(TaskFields.SELECTED_DATE, dateTask.getSelectedDate());
+	        }
+	    }
+	    
+	    // Only update if there are fields to update
+	    if (!updateDoc.isEmpty()) {
+	        collection.updateOne(eq(TaskFields.ID, task.getId()), new Document("$set", updateDoc));
+	    }
+	    
+	    // Return the updated task
+	    return findById(task.getId());
+	}
 
 }

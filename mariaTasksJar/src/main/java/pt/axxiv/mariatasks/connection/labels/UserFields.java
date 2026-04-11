@@ -8,4 +8,6 @@ public class UserFields {
 	public static final String USERNAME = "username";
 	public static final String PASSWORD = "password";
 	public static final String REMEMBER_TOKEN = "rememberToken";
+	public static final String BEARER_TOKEN = "bearerToken";
+	public static final String BEARER_TOKEN_EXPIRY = "bearerTokenExpiry";
 }

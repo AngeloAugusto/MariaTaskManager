@@ -1,0 +1,13 @@
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+                             https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+         version="6.0">
+    
+    <display-name>Maria Tasks API</display-name>
+    
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>dev.axxiv.mariaTasksApi.Main</param-value>
+    </context-param>
+</web-app>

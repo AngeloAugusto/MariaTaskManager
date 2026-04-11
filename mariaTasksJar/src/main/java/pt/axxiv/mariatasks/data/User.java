@@ -1,5 +1,7 @@
 package pt.axxiv.mariatasks.data;
 
+import java.util.Date;
+
 import org.bson.types.ObjectId;
 
 import pt.axxiv.mariatasks.crypt.CryptUtil;
@@ -11,6 +13,8 @@ public class User implements Comparable<User> {
 	private String username;
 	private String password;
 	private String rememberToken;
+	private String bearerToken;
+	private Date bearerTokenExpiry;
 	
 	public User(){}
 
@@ -19,6 +23,7 @@ public class User implements Comparable<User> {
 		this.title = title;
 		this.username = username;
 		this.password = CryptUtil.hashPassword(password);
+		this.bearerToken=null;
 	}
 
 	public ObjectId getId() {
@@ -60,6 +65,30 @@ public class User implements Comparable<User> {
 	public void setRememberToken(String rememberToken) {
 		this.rememberToken = rememberToken;
 	}
+
+	public String getBearerToken() {
+		return bearerToken;
+	}
+
+	public void setBearerToken(String bearerToken) {
+		this.bearerToken = bearerToken;
+	}
+	
+    public Date getBearerTokenExpiry() {
+        return bearerTokenExpiry;
+    }
+
+    public void setBearerTokenExpiry(Date bearerTokenExpiry) {
+        this.bearerTokenExpiry = bearerTokenExpiry;
+    }
+    
+    // Helper method to check if token is expired
+    public boolean isBearerTokenExpired() {
+        if (bearerTokenExpiry == null) {
+            return true;
+        }
+        return new Date().after(bearerTokenExpiry);
+    }
 
 	@Override
 	public int compareTo(User arg0) {
