@@ -51,12 +51,16 @@
 }
 
 .menu-items {
-	flex: 1;
+	flex: none;
+	height: calc(100% - 100px);
 	display: flex;
 	flex-direction: column;
 	align-items: center;;
 	gap: 10px;
 	width: 100%;
+	
+	overflow-y: auto;
+	overflow-x: hidden;
 }
 
 .menu-btn, .menu-item, .add-btn, .save-btn, .clear-btn, .logout-btn {
