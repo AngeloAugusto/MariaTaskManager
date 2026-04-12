@@ -36,7 +36,7 @@
 			<!-- Add Task Form (outside, right side) -->
 			<vlayout id="addTaskForm" sclass="add-task-form">
 			    <textbox id="txTitle" placeholder="Task Title"/>
-			    <textbox id="txNotes" placeholder="Task Notes" multiline="true" rows="3"/>
+			    <textbox id="txNotes" placeholder="Task Notes" multiline="true" rows="10" tabbable="true"/>
 			    <hbox>
 			    	<timebox id="tbTime" format="HH:mm"/>
 			    	<button id="btClearTime" sclass="clear-btn" iconSclass="z-icon-trash"/>
