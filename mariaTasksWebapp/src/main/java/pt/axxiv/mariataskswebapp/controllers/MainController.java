@@ -263,12 +263,6 @@ public class MainController extends SelectorComposer<Window> {
 	            textContainer.appendChild(notes);
 	        }
 	        
-	        if (inHistoric) {
-	            Label closedAt = new Label("Task closed at "+t.closedDateFormatted());
-	            closedAt.setStyle("font-size: 12px; color: gray; margin-top: 2px;");
-	            textContainer.appendChild(closedAt);
-	        }
-	        
 	        row.addEventListener("onClick", e -> onClickOnTaskRow(t));
 	        row.appendChild(textContainer);
 
@@ -288,6 +282,9 @@ public class MainController extends SelectorComposer<Window> {
     		closeNewTaskWindow();
     		editingTask = null;
     	}
+		
+		if(inHistoric)
+			closeHistoric();
 		
         t.setClosed();
         new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, t.getCloseDate());
