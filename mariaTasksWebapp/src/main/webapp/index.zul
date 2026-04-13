@@ -2,6 +2,13 @@
 <zk>
 
 	<window id="tasksTabWindow" border="none" height="100%" width="100%" style="background:#242526; color:#fff;" apply="pt.axxiv.mariataskswebapp.controllers.MainController">
+	<script type="text/javascript">
+	    document.addEventListener("visibilitychange", function() {
+	        if (!document.hidden) {
+	            zAu.send(new zk.Event(zk.Widget.$('$tasksTabWindow'), 'onTabFocus', null));
+	        }
+	    });
+	</script>
 	<script src="custom-date-labels*.js" ></script>
 		<div sclass="main-container">
 			

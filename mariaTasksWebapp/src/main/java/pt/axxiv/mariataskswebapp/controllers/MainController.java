@@ -818,10 +818,7 @@ public class MainController extends SelectorComposer<Window> {
 
 		sortedTasks.sort(
 		    Comparator
-		        // 1. Not closed first (false < true)
 		        .comparing((Task t) -> t.getCloseDate() != null)
-		
-		        // 2. Then by startDate (older → newer)
 		        .thenComparing(Task::getCloseDate, Comparator.nullsFirst(Comparator.naturalOrder()))
 		        .thenComparing(Task::getStartDate, Comparator.nullsLast(Comparator.naturalOrder()))
 		);
@@ -832,6 +829,14 @@ public class MainController extends SelectorComposer<Window> {
 
 	    generateTaskList(tasksMap.get(selectedSection));
 		generateTodayTaskList(new TaskDAO().findAllOpenTodayByUser(currentUser.getId()));
+	}
+	
+	@Listen("onTabFocus = #tasksTabWindow")
+	public void onTabFocus() {
+	    checkIsLogedIn();
+	    updateSections();
+		generateSectionList();
+	    updateTaskMap();
 	}
 	
 	private void updateSections() {
