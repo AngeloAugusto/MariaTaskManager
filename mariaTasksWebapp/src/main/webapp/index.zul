@@ -62,7 +62,7 @@
 			</vlayout>
 	
 		</div>
-		<timer id="myTimer" delay="500" repeats="true"/>
+		<timer id="myTimer" delay="10000" repeats="true"/>
 		
 		<popup id="ppAddSection" sclass="add-section" width="300px">
 			<hbox>

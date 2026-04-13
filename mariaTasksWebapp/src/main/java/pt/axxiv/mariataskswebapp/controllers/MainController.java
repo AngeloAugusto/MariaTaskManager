@@ -802,31 +802,18 @@ public class MainController extends SelectorComposer<Window> {
 	}
 	
 	
-//	@Listen("onTimer = #myTimer")
-//    public void runTask(Event event) {
-//
-//        // Check if logged in
-//        checkIsLogedIn();
-//		
-//		if(inHistoric)
-//			return;
-//        
-//		List<Task> tasksTemp = new TaskDAO().findAllOpenByUserAndSection(selectedSection, currentUser.getId());
-//		List<Task> tasksTodayTemp = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
-//		
-//		if(tasksTemp != null && tasksTemp.size()>0) {
-//			List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(tasksTemp.get(0).getSection())).findFirst().get());
-//			if(ts.size()!=tasksTemp.size()) {
-//				tasksMap.put(sections.stream().filter(s -> s.getId().equals(tasksTemp.get(0).getSection())).findFirst().get(), tasksTemp);
-//				generateTaskList(tasksMap.get(selectedSection));
-//			}
-//		}
-//		
-//		if(tasksTodayTemp != null && tasksTodayTemp.size()!=tasksToday.size()) {
-//				tasksToday = tasksTodayTemp;
-//				generateTodayTaskList(tasksToday);
-//		}
-//	}
+	@Listen("onTimer = #myTimer")
+    public void runTask(Event event) {
+
+        // Check if logged in
+        checkIsLogedIn();
+		
+		if(inHistoric)
+			return;
+        
+		updateSections();
+		updateTaskMap();
+	}
 	
 	private void createIconGrid() {
 
