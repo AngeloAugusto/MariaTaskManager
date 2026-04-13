@@ -766,15 +766,15 @@ public class MainController extends SelectorComposer<Window> {
 	}
 	
 	
-	@Listen("onTimer = #myTimer")
-    public void runTask(Event event) {
-
-        // Check if logged in
-        checkIsLogedIn();
-        
-		updateSections();
-		updateTaskMap();
-	}
+//	@Listen("onTimer = #myTimer")
+//    public void runTask(Event event) {
+//
+//        // Check if logged in
+//        checkIsLogedIn();
+//        
+//		updateSections();
+//		updateTaskMap();
+//	}
 	
 	private void createIconGrid() {
 
