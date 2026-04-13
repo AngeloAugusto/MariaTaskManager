@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.bson.types.ObjectId;
+import org.zkoss.zhtml.Hr;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
@@ -347,7 +348,15 @@ public class MainController extends SelectorComposer<Window> {
 	        taskList.removeChild(taskList.getFirstChild());
 
 	    //tasks.stream().filter(t -> t.getSection().equals(selectedSection.getId())).collect(Collectors.toSet())
+	    boolean hasClosed = tasks.get(0).getCloseDate()!=null;
 	    for (Task t : tasks) {
+	    	if(t.getCloseDate()!= null && !hasClosed) {
+	    		hasClosed=true;
+	    		Hr hr = new Hr();
+	    		hr.setStyle("width: 90%; margin-top: 15px; margin-bottom: 15px;");
+		        taskList.appendChild(hr);
+	    	}
+	    		
 	        Div row = new Div();
 	        row.setSclass("line");
 
