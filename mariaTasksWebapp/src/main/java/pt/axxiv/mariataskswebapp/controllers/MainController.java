@@ -30,6 +30,7 @@ import org.zkoss.zul.Button;
 import org.zkoss.zul.Combobox;
 import org.zkoss.zul.Datebox;
 import org.zkoss.zul.Div;
+import org.zkoss.zul.Html;
 import org.zkoss.zul.Intbox;
 import org.zkoss.zul.Label;
 import org.zkoss.zul.ListModelList;
@@ -258,9 +259,13 @@ public class MainController extends SelectorComposer<Window> {
 
 	        // Notes
 	        if (t.getNotes() != null && !t.getNotes().isEmpty()) {
-	            Label notes = new Label(t.getNotes());
-	            notes.setStyle("font-size: 12px; color: gray; margin-top: 2px;");
-	            textContainer.appendChild(notes);
+	        	Div container = new Div();
+	        	container.setSclass("notes-container");
+	        	textContainer.appendChild(container);
+
+	        	Html notes = new Html();
+	        	notes.setContent(t.getNotes());
+	        	container.appendChild(notes);
 	        }
 	        
 	        row.addEventListener("onClick", e -> onClickOnTaskRow(t));
@@ -313,7 +318,7 @@ public class MainController extends SelectorComposer<Window> {
     	}
     	
         txTitle.setValue(editingTask.getTitle());
-        txNotes.setValue(editingTask.getNotes());
+        txNotes.setValue(convertToText(editingTask.getNotes()));
         
         if(editingTask.getTimeOfTheDay()!=null)
         	tbTime.setValue(localTimeToDate(editingTask.getTimeOfTheDay()));
@@ -379,9 +384,13 @@ public class MainController extends SelectorComposer<Window> {
 
 	        // Notes
 	        if (t.getNotes() != null && !t.getNotes().isEmpty()) {
-	            Label notes = new Label(t.getNotes());
-	            notes.setStyle("font-size: 12px; color: gray; margin-top: 2px;");
-	            textContainer.appendChild(notes);
+	        	Div container = new Div();
+	        	container.setSclass("notes-container");
+	        	textContainer.appendChild(container);
+
+	        	Html notes = new Html();
+	        	notes.setContent(t.getNotes());
+	        	container.appendChild(notes);
 	        }
 	        
 	        if (inHistoric || t.getCloseDate()!= null) {
@@ -505,11 +514,141 @@ public class MainController extends SelectorComposer<Window> {
 		generateSectionList();
 	    generateTaskList(tasksMap.get(selectedSection));
 	}
+	
+	public String convertToText(String html) {
+	    if (html == null || html.isEmpty()) return "";
+
+	    html = html.replace("\r", "");
+
+	    if (!html.contains("<")) {
+	        return html;
+	    }
+
+	    StringBuilder sb = new StringBuilder();
+	    int i = 0;
+
+	    while (i < html.length()) {
+
+	        if (html.startsWith("<br>", i)) {
+	            int brCount = 0;
+
+	            while (html.startsWith("<br>", i)) {
+	                brCount++;
+	                i += 4;
+	            }
+
+	            for (int j = 0; j < brCount; j++) {
+	                sb.append("\n");
+	            }
+
+	            continue;
+	        }
+
+	        if (html.startsWith("<li>", i)) {
+	            i += 4;
+	            int end = html.indexOf("</li>", i);
+	            if (end == -1) break;
+
+	            String item = html.substring(i, end).trim();
+	            sb.append("* ")
+	              .append(stripTags(item))
+	              .append("\n");
+
+	            i = end + 5;
+	            continue;
+	        }
+
+	        if (html.startsWith("<p>", i)) {
+	            i += 3;
+	            int end = html.indexOf("</p>", i);
+	            if (end == -1) break;
+
+	            String text = html.substring(i, end).trim();
+	            sb.append(stripTags(text)).append("\n");
+
+	            i = end + 4;
+	            continue;
+	        }
+
+	        i++;
+	    }
+
+	    return sb.toString().trim();
+	}
+	
+	private String stripTags(String input) {
+	    return input.replaceAll("<[^>]*>", "").trim();
+	}
+	
+
+	public String convertToHtml(String input) {
+	    if (input == null || input.isEmpty()) return "";
+
+	    StringBuilder sb = new StringBuilder();
+	    boolean inList = false;
+
+	    int blankCount = 0;
+
+	    for (String rawLine : input.split("\\n")) {
+	        String line = rawLine.trim();
+
+	        if (line.isEmpty()) {
+	            blankCount++;
+
+	            if (inList) {
+	                sb.append("</ul>");
+	                inList = false;
+	            }
+
+	            continue;
+	        }
+
+	        if (blankCount > 0) {
+	            for (int i = 0; i < blankCount; i++) {
+	                sb.append("<br>");
+	            }
+	            blankCount = 0;
+	        }
+
+	        if (line.startsWith("* ")) {
+	            if (!inList) {
+	                sb.append("<ul>");
+	                inList = true;
+	            }
+
+	            sb.append("<li>")
+	              .append(line.substring(2).trim())
+	              .append("</li>");
+	        } else {
+	            if (inList) {
+	                sb.append("</ul>");
+	                inList = false;
+	            }
+
+	            sb.append("<p>")
+	              .append(line)
+	              .append("</p>");
+	        }
+	    }
+
+	    // close list if still open
+	    if (inList) {
+	        sb.append("</ul>");
+	    }
+
+	    // trailing blank lines
+	    for (int i = 0; i < blankCount; i++) {
+	        sb.append("<br>");
+	    }
+
+	    return sb.toString();
+	}
 
 	@Listen("onClick = #btSaveNewTask")
 	public void onClickbtSaveNewTask(Event e) {
 		String title = txTitle.getValue();
-		String notes = txNotes.getValue();
+		String notes = convertToHtml(txNotes.getValue());
+		
 		TaskFormat selectedFormat = (TaskFormat) cbFormat.getSelectedItem().getValue();
 		
 		Task task = TaskFactory.createTask(selectedFormat, title, notes, selectedSection.getId(), currentUser.getId(), tbTime.getValueInLocalTime());
