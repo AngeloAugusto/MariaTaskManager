@@ -1,5 +1,7 @@
 package pt.axxiv.mariatasks.data;
 
+import java.util.Objects;
+
 import org.bson.types.ObjectId;
 
 public class Section implements Comparable<Section> {
@@ -56,5 +58,17 @@ public class Section implements Comparable<Section> {
 	public int compareTo(Section arg0) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+	@Override
+	public boolean equals(Object o) {
+	    if (this == o) return true;
+	    if (!(o instanceof Section)) return false;
+	    Section section = (Section) o;
+	    return Objects.equals(id, section.id);
+	}
+
+	@Override
+	public int hashCode() {
+	    return Objects.hash(id);
 	}
 }

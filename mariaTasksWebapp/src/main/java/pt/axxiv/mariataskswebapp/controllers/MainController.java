@@ -7,10 +7,13 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.bson.types.ObjectId;
@@ -124,7 +127,6 @@ public class MainController extends SelectorComposer<Window> {
     private Window window;
 
 	private List<Section> sections = new ArrayList<Section>();
-	private List<Task> tasksToday = new ArrayList<Task>();
 	private Map<Section, List<Task>> tasksMap = new HashMap<Section, List<Task>>();
 	private ListModelList<FrequencyTypes> frequencyFormatListModelList;
 	private ListModelList<TaskFormat> taskFormatListModelList ;
@@ -194,6 +196,7 @@ public class MainController extends SelectorComposer<Window> {
 
 		updateSections();
 		selectedSection = sections.get(0);
+		generateSectionList();
 		updateTaskMap();
 
 		window.getPage().setTitle("MariaTasks - "+selectedSection.getTitle());
@@ -207,10 +210,6 @@ public class MainController extends SelectorComposer<Window> {
 		cbFrequency.setModel(frequencyFormatListModelList);
 		
 		taskFormatListModelList.addToSelection(TaskFormat.ONCE);
-
-		generateSectionList();
-		generateTaskList(tasksMap.get(selectedSection));
-		generateTodayTaskList(tasksToday);
 		
 		createIconGrid();
 
@@ -232,7 +231,7 @@ public class MainController extends SelectorComposer<Window> {
 		while (todayTaskList.getFirstChild() != null)
 			todayTaskList.removeChild(todayTaskList.getFirstChild());
 	    
-	    if(tasks.size()<=0)
+	    if(tasks == null || tasks.size()<=0)
 	    	return;
 
 	    for (Task t : tasks) {
@@ -295,9 +294,6 @@ public class MainController extends SelectorComposer<Window> {
         }
         
         updateTaskMap();
-        
-		generateTodayTaskList(tasksToday);
-        generateTaskList(tasksMap.get(selectedSection));
 	}
 	
 	private void onClickOnTaskRow(Task t) {
@@ -349,9 +345,6 @@ public class MainController extends SelectorComposer<Window> {
 	private void generateTaskList(List<Task> tasks) {
 	    while (taskList.getFirstChild() != null)
 	        taskList.removeChild(taskList.getFirstChild());
-	    
-	    if(tasks.size()<=0)
-	    	return;
 
 	    //tasks.stream().filter(t -> t.getSection().equals(selectedSection.getId())).collect(Collectors.toSet())
 	    for (Task t : tasks) {
@@ -382,13 +375,13 @@ public class MainController extends SelectorComposer<Window> {
 	            textContainer.appendChild(notes);
 	        }
 	        
-	        if (inHistoric) {
+	        if (inHistoric || t.getCloseDate()!= null) {
 	            Label closedAt = new Label("Task closed at "+t.closedDateFormatted());
 	            closedAt.setStyle("font-size: 12px; color: gray; margin-top: 2px;");
 	            textContainer.appendChild(closedAt);
 	        }
 	        
-	        if(!inHistoric) {
+	        if(!inHistoric && t.getCloseDate()== null) {
 		        row.addEventListener("onClick", e ->onClickOnTaskRow(t));
 	        }
 
@@ -397,7 +390,11 @@ public class MainController extends SelectorComposer<Window> {
 	        // Done button
 	        if(!inHistoric) {
 		        Button btDone = new Button(" ");
-		        btDone.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px;");
+	        	btDone.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px; color: white;");
+		        if(t.getCloseDate() != null) {
+		        	btDone.setDisabled(t.getCloseDate() != null);
+		        	btDone.setIconSclass("z-icon-check");
+		        }
 		        btDone.addEventListener("onClick", e -> onClickDone(t));
 		        row.appendChild(btDone);
 	        }
@@ -471,30 +468,6 @@ public class MainController extends SelectorComposer<Window> {
         sidebar.setSclass("sidebar open");
         showSectionTitle = true;
 	}
-	
-
-	@Listen("onClick = #teste")
-	public void onClickbtDeleteBD(Event e) {
-		new TaskDAO().deleteAll();
-		new SectionDAO().deleteAll();
-		new UserDAO().deleteAll();
-		tasksMap = new HashMap<Section, List<Task>>();
-		sections = new ArrayList<Section>();
-		tasksToday = new ArrayList<Task>();
-		
-		User user = new User("Test", "teste", "password");
-		user = new UserDAO().insert(user);
-		
-		Section section = new Section("To Do", "", user.getId());
-		section = new SectionDAO().insert(section);
-		sections.add(section);
-		
-
-		generateSectionList();
-		generateTaskList(tasksMap.get(selectedSection));
-		generateTodayTaskList(tasksToday);
-		System.out.println("DB CLEARED....................");
-	}
 
 	@Listen("onClick = #btCreateTask")
 	public void onClickbtCreateTask(Event e) {
@@ -548,13 +521,10 @@ public class MainController extends SelectorComposer<Window> {
 		
 
 		new TaskDAO().insert(task);
-		addTaskToMap(task);
-		tasksToday = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
+		
+		updateTaskMap();
 		
     	closeNewTaskWindow();
-		
-		generateTaskList(tasksMap.get(selectedSection));
-		generateTodayTaskList(tasksToday);
 	}
 	
 	private void clearNewTaskWindow() {
@@ -750,10 +720,7 @@ public class MainController extends SelectorComposer<Window> {
 		
 		new TaskDAO().delete(editingTask.getId());
 		
-        generateTaskList(tasksMap.get(selectedSection));
-        
-		tasksToday = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
-		generateTodayTaskList(tasksToday);
+        updateTaskMap();
 		
 		ppConfirmDeletionTask.close();
 		closeNewTaskWindow();
@@ -787,10 +754,7 @@ public class MainController extends SelectorComposer<Window> {
 		selectedSection = sections.get(0);
 		window.getPage().setTitle("MariaTasks - "+selectedSection.getTitle());
         generateSectionList();
-        generateTaskList(tasksMap.get(selectedSection));
-        
-		tasksToday = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
-		generateTodayTaskList(tasksToday);
+        updateTaskMap();
 		
 		ppConfirmDeletion.close();
 		
@@ -807,9 +771,6 @@ public class MainController extends SelectorComposer<Window> {
 
         // Check if logged in
         checkIsLogedIn();
-		
-		if(inHistoric)
-			return;
         
 		updateSections();
 		updateTaskMap();
@@ -844,16 +805,33 @@ public class MainController extends SelectorComposer<Window> {
 	}
 	
 	private void updateTaskMap() {
-		tasksMap = new HashMap<Section, List<Task>>();
-		for(Section s : sections) {
-			tasksMap.put(s, new ArrayList<Task>());
-		}
+	    tasksMap = new HashMap<Section, List<Task>>();
+	    for(Section s : sections) {
+	        tasksMap.put(s, new ArrayList<Task>());
+	    }
+	    
+	    Set<Task> allTasks = new HashSet<>();
+	    allTasks.addAll(new TaskDAO().findAllOpenByUser(currentUser.getId()));
+	    allTasks.addAll(new TaskDAO().findAllClosedTodayByUser(currentUser.getId()));
+	    
+	    List<Task> sortedTasks = new ArrayList<>(allTasks);
+
+		sortedTasks.sort(
+		    Comparator
+		        // 1. Not closed first (false < true)
+		        .comparing((Task t) -> t.getCloseDate() != null)
 		
-		for(Task t : new TaskDAO().findAllOpenByUser(currentUser.getId())) {
-			addTaskToMap(t);
-		}
-		
-		tasksToday = new TaskDAO().findAllOpenTodayByUser(currentUser.getId());
+		        // 2. Then by startDate (older → newer)
+		        .thenComparing(Task::getCloseDate, Comparator.nullsFirst(Comparator.naturalOrder()))
+		        .thenComparing(Task::getStartDate, Comparator.nullsLast(Comparator.naturalOrder()))
+		);
+		    
+	    for(Task t : sortedTasks) {
+	        addTaskToMap(t);
+	    }
+
+	    generateTaskList(tasksMap.get(selectedSection));
+		generateTodayTaskList(new TaskDAO().findAllOpenTodayByUser(currentUser.getId()));
 	}
 	
 	private void updateSections() {

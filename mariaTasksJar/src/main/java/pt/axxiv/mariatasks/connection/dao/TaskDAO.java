@@ -21,6 +21,8 @@ import pt.axxiv.mariatasks.data.TaskOnce;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.ne;
+import static com.mongodb.client.model.Filters.gte;
+import static com.mongodb.client.model.Filters.lt;
 
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -132,6 +134,38 @@ public class TaskDAO {
         
         Collections.sort(tasks, Collections.reverseOrder());
         
+        return tasks;
+    }
+
+
+    public List<Task> findAllClosedTodayByUser(ObjectId userId) {
+        List<Task> tasks = new ArrayList<>();
+
+        // Start of today
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        Date startOfDay = cal.getTime();
+
+        // Start of tomorrow
+        cal.add(Calendar.DAY_OF_MONTH, 1);
+        Date startOfNextDay = cal.getTime();
+
+        for (Document doc : collection.find(and(
+                gte(TaskFields.CLOSE_DATE, startOfDay),
+                lt(TaskFields.CLOSE_DATE, startOfNextDay),
+                eq(TaskFields.OWNER, userId)
+        ))) {
+            Task task = createFromDocument(doc);
+
+            if (task.getStartDate() == null || !task.getStartDate().after(new Date())) {
+                tasks.add(task);
+            }
+        }
+
+        Collections.sort(tasks, Collections.reverseOrder());
         return tasks;
     }
 
