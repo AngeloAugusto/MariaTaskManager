@@ -24,6 +24,8 @@ import static com.mongodb.client.model.Filters.ne;
 import static com.mongodb.client.model.Filters.gte;
 import static com.mongodb.client.model.Filters.lt;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -172,40 +174,70 @@ public class TaskDAO {
 
     public List<Task> findAllOpenByUserAndSection(Section section, ObjectId userId) {
         List<Task> tasks = new ArrayList<>();
-        for (Document doc : collection.find(and(eq(TaskFields.CLOSE_DATE, null),eq(TaskFields.OWNER, userId)))) {
-        	Task task = createFromDocument(doc);
-	        
-	        if ((task.getStartDate() == null || !task.getStartDate().after(new Date())) && task.getSection().equals(section.getId())) {
-	            tasks.add(task);
-	        }
-	    }
-        
+
+        LocalDate today = LocalDate.now();
+
+        for (Document doc : collection.find(and(eq(TaskFields.CLOSE_DATE, null), eq(TaskFields.OWNER, userId)))) {
+            Task task = createFromDocument(doc);
+
+            boolean include = false;
+
+            if (task.getStartDate() == null) {
+                include = true;
+            } else {
+                LocalDate start = task.getStartDate()
+                        .toInstant()
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate();
+
+                include = !start.isAfter(today);
+            }
+
+            if (include && task.getSection().equals(section.getId())) {
+                tasks.add(task);
+            }
+        }
+
         Collections.sort(tasks, Collections.reverseOrder());
-        
         return tasks;
     }
 
 
     public List<Task> findAllOpenTodayByUser(ObjectId userId) {
         List<Task> tasks = new ArrayList<>();
-        for (Document doc : collection.find(and(eq(TaskFields.CLOSE_DATE, null),eq(TaskFields.OWNER, userId)))) {
-        	Task task = createFromDocument(doc);
-	        
-        	// TaskDaily and start date <= today
-        	// TaskDate and selected_date <= today
-        	// TaskCustom and start date <= today
-        	// Task with TimeOfDay
-        	
-	        if (((task instanceof TaskDaily taskDaily)) && !taskDaily.getStartDate().after(new Date()) ||
-	        		((task instanceof TaskCustom taskCustom)) && !taskCustom.getStartDate().after(new Date()) ||
-	        		((task instanceof TaskDate taskDate)) && !taskDate.getSelectedDate().after(new Date()) ||
-	        		(task.getTimeOfTheDay() != null && (task instanceof TaskOnce))) {
-	            tasks.add(task);
-	        }
-	    }
-        
+
+        LocalDate today = LocalDate.now();
+
+        for (Document doc : collection.find(and(eq(TaskFields.CLOSE_DATE, null), eq(TaskFields.OWNER, userId)))) {
+            Task task = createFromDocument(doc);
+
+            boolean include = false;
+
+            if (task instanceof TaskDaily taskDaily) {
+                LocalDate start = taskDaily.getStartDate()
+                        .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                include = !start.isAfter(today);
+
+            } else if (task instanceof TaskCustom taskCustom) {
+                LocalDate start = taskCustom.getStartDate()
+                        .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                include = !start.isAfter(today);
+
+            } else if (task instanceof TaskDate taskDate) {
+                LocalDate selected = taskDate.getSelectedDate()
+                        .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                include = !selected.isAfter(today);
+
+            } else if (task instanceof TaskOnce && task.getTimeOfTheDay() != null) {
+                include = true;
+            }
+
+            if (include) {
+                tasks.add(task);
+            }
+        }
+
         Collections.sort(tasks, Collections.reverseOrder());
-        
         return tasks;
     }
 
