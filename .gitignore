@@ -1,11 +1,46 @@
-# secrets / local env
+# =========================
+# Secrets / local config
+# =========================
 .env
 *.local
 credentials.properties
 
-# IDE
-.vscode/
+# =========================
+# Maven / Java build output
+# =========================
+target/
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# IDE - IntelliJ
+# =========================
 .idea/
 *.iml
-target/
-*.class
+
+# =========================
+# IDE - VS Code
+# =========================
+.vscode/
+
+# =========================
+# IDE - Eclipse / STS
+# =========================
+.project
+.classpath
+.settings/
+**/.settings/
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
