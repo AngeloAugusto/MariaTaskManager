@@ -979,6 +979,8 @@ public class MainController extends SelectorComposer<Window> {
 		        .comparing((Task t) -> t.getCloseDate() != null)
 		        .thenComparing(Task::getCloseDate, Comparator.nullsFirst(Comparator.naturalOrder()))
 		        .thenComparing(Task::getStartDate, Comparator.nullsLast(Comparator.naturalOrder()))
+		        .thenComparing(Task::getTitle, Comparator.nullsLast(Comparator.naturalOrder()))
+		        .thenComparing(Task::getId)
 		);
 		    
 	    for(Task t : sortedTasks) {
