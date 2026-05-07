@@ -291,13 +291,21 @@ public class MainController extends SelectorComposer<Window> {
 		if(inHistoric)
 			closeHistoric();
 		
-        t.setClosed();
-        new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, t.getCloseDate());
-        
-        Task task = TaskFactory.createRollingTask(t);
-        if(task != null) {
-	    	new TaskDAO().insert(task);
-        }
+		if(t.getCloseDate() != null) {
+			t.setCloseDate(null);
+			new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, null);
+			Task hasNewRollingTask = new TaskDAO().findByParent(t.getId());
+			if(hasNewRollingTask != null) {
+				new TaskDAO().delete(hasNewRollingTask.getId());
+			}
+		}else {
+			t.setClosed();
+	        new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, t.getCloseDate());
+	        Task task = TaskFactory.createRollingTask(t);
+	        if(task != null) {
+		    	new TaskDAO().insert(task);
+	        }
+		}
         
         updateTaskMap();
 	}
@@ -410,7 +418,6 @@ public class MainController extends SelectorComposer<Window> {
 		        Button btDone = new Button(" ");
 	        	btDone.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px; color: white;");
 		        if(t.getCloseDate() != null) {
-		        	btDone.setDisabled(t.getCloseDate() != null);
 		        	btDone.setIconSclass("z-icon-check");
 		        }
 		        btDone.addEventListener("onClick", e -> onClickDone(t));

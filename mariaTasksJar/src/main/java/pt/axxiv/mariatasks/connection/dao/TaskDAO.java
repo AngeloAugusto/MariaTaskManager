@@ -115,6 +115,14 @@ public class TaskDAO {
 	    return null;
 	}
 
+	public Task findByParent(ObjectId id) {
+	    Document doc = collection.find(eq(TaskFields.PARENT, id)).first();
+	    if (doc != null) {
+	        return createFromDocument(doc);
+	    }
+	    return null;
+	}
+
 	public List<Task> findAll() {
 	    List<Task> tasks = new ArrayList<>();
 	    for (Document doc : collection.find()) {
