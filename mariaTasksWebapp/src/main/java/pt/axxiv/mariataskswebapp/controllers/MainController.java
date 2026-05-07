@@ -359,6 +359,9 @@ public class MainController extends SelectorComposer<Window> {
 	private void generateTaskList(List<Task> tasks) {
 	    while (taskList.getFirstChild() != null)
 	        taskList.removeChild(taskList.getFirstChild());
+	    
+	    if(tasks.isEmpty() || tasks.size()<=0)
+	    	return;
 
 	    //tasks.stream().filter(t -> t.getSection().equals(selectedSection.getId())).collect(Collectors.toSet())
 	    boolean hasClosed = tasks.get(0).getCloseDate()!=null;
@@ -997,7 +1000,7 @@ public class MainController extends SelectorComposer<Window> {
 	private void updateSections() {
 		sections = new SectionDAO().findAllByUser(currentUser.getId());
 		
-		if(sections.size()<=0) {
+		if(sections == null || sections.size()<=0) {
 			Section section = new Section("To Do", "z-icon-pencil-square-o", currentUser.getId());
 			section = new SectionDAO().insert(section);
 			sections.add(section);

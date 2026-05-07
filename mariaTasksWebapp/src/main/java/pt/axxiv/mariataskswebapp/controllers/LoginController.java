@@ -150,8 +150,9 @@ public class LoginController extends SelectorComposer<Window> {
 		}
 		
 		User user = new User(title, username, pass);
-		user.setRememberToken(generateToken(user, pass));
 		user = new UserDAO().insert(user);
+		user.setRememberToken(generateToken(user, pass));
+		new UserDAO().updateValue(user.getId(), UserFields.REMEMBER_TOKEN, user.getRememberToken());
 		
 		
 		Executions.sendRedirect("/");
