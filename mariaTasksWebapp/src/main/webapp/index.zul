@@ -70,6 +70,16 @@
 			        <button id="btDeleteTask" sclass="save-btn" iconSclass="z-icon-trash" visible="false"/>
 			        <button id="btSaveNewTask" sclass="save-btn" iconSclass="z-icon-check"/>
 		        </hbox>
+		        <separator/>
+		        
+		        <vlayout id="taskHistory" sclass="extra-fields" visible="false">
+					<hlayout sclass="task-header">
+						<hlayout spacing="7px" sclass="z-valign-middle">
+				    		<label value="Task history" sclass="sub-title"/>
+						</hlayout>
+					</hlayout>
+					<vlayout id="taskHistoryList" sclass="task-list"/>
+				</vlayout>
 			</vlayout>
 	
 		</div>

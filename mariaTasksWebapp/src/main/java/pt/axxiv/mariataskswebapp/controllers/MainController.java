@@ -127,6 +127,10 @@ public class MainController extends SelectorComposer<Window> {
 	private Datebox dbStartDate;
     @Wire
     private Button btEditTitleSection;
+    @Wire
+    private Vlayout taskHistoryList;
+    @Wire
+    private Vlayout taskHistory;
 
     private Window window;
 
@@ -226,6 +230,41 @@ public class MainController extends SelectorComposer<Window> {
 	
 
 
+	private boolean generateTaskHistory() {
+		
+		List<Task> taskList = new ArrayList<>();
+		Task parent = new TaskDAO().findById(editingTask.getParent());
+
+		while (parent != null) {
+		    taskList.add(parent);
+		    parent = new TaskDAO().findById(parent.getParent());
+		}
+		
+		if(taskList.size()<=0) {
+			return false;
+		}
+
+		while (taskHistoryList.getFirstChild() != null)
+			taskHistoryList.removeChild(taskHistoryList.getFirstChild());
+    	
+    	for (Task t : taskList) {
+			Div row = new Div();
+	        row.setSclass("line");
+	        
+	        Div textContainer = new Div();
+	        textContainer.setStyle("display: flex; flex-direction: column;");
+	        textContainer.setTooltiptext(t.getStartDate().toString());
+	        String closeDate = t.closedDateFormatted();
+	        Label titleLabel = new Label(closeDate);
+	        titleLabel.setSclass("taskTitle");
+	        textContainer.appendChild(titleLabel);
+	        row.appendChild(textContainer);
+	        taskHistoryList.appendChild(row);
+		}
+		
+		return true;
+	}
+
 	@Listen("onOK = #txTitle")
 	public void onEnterPress(Event event) {
 		onClickbtSaveNewTask(null);
@@ -319,6 +358,7 @@ public class MainController extends SelectorComposer<Window> {
 
         	btDeleteTask.setVisible(true);
         	dbStartDate.setVisible(true);
+        	taskHistory.setVisible(generateTaskHistory());
     	} else if(t == editingTask) {
     		closeNewTaskWindow();
     		editingTask = null;
@@ -684,6 +724,7 @@ public class MainController extends SelectorComposer<Window> {
 			task.setId(editingTask.getId());
 			task.setStartDate(dbStartDate.getValue());
 			task.setSection(cbSection.getSelectedItem().getValue());
+			task.setParent(editingTask.getParent());
 			editingTask = null;
 		}
 		
@@ -750,6 +791,7 @@ public class MainController extends SelectorComposer<Window> {
 
     	btDeleteTask.setVisible(false);
     	dbStartDate.setVisible(false);
+    	taskHistory.setVisible(false);
 	}
 	
 	@Listen("onSelect = #cbFormat")
