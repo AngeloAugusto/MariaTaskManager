@@ -124,6 +124,8 @@ public class MainController extends SelectorComposer<Window> {
     @Wire
 	private Popup ppIcon;
     @Wire
+	private Datebox dbStartDate;
+    @Wire
     private Button btEditTitleSection;
 
     private Window window;
@@ -316,6 +318,7 @@ public class MainController extends SelectorComposer<Window> {
     		openNewTaskWindow();
 
         	btDeleteTask.setVisible(true);
+        	dbStartDate.setVisible(true);
     	} else if(t == editingTask) {
     		closeNewTaskWindow();
     		editingTask = null;
@@ -327,6 +330,8 @@ public class MainController extends SelectorComposer<Window> {
     	
         txTitle.setValue(editingTask.getTitle());
         txNotes.setValue(convertToText(editingTask.getNotes()));
+        
+        dbStartDate.setValue(editingTask.getStartDate());
         
         if(editingTask.getTimeOfTheDay()!=null)
         	tbTime.setValue(localTimeToDate(editingTask.getTimeOfTheDay()));
@@ -364,10 +369,19 @@ public class MainController extends SelectorComposer<Window> {
 	    	return;
 
 	    //tasks.stream().filter(t -> t.getSection().equals(selectedSection.getId())).collect(Collectors.toSet())
+        LocalDate today = LocalDate.now();
+        
 	    boolean hasClosed = tasks.get(0).getCloseDate()!=null;
+	    boolean hasAfterToday = tasks.get(0).getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(today);
 	    for (Task t : tasks) {
 	    	if(t.getCloseDate()!= null && !hasClosed) {
 	    		hasClosed=true;
+	    		Hr hr = new Hr();
+	    		hr.setStyle("width: 90%; margin-top: 15px; margin-bottom: 15px;");
+		        taskList.appendChild(hr);
+	    	}
+	    	if(t.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(today) && !hasAfterToday) {
+	    		hasAfterToday=true;
 	    		Hr hr = new Hr();
 	    		hr.setStyle("width: 90%; margin-top: 15px; margin-bottom: 15px;");
 		        taskList.appendChild(hr);
@@ -388,6 +402,9 @@ public class MainController extends SelectorComposer<Window> {
 	        }
 	        if(t instanceof TaskDate taskDate) {
 	        	title += " ("+taskDate.setSelectedDateString()+")";
+	        }
+	        if(t.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(today)) {
+	        	title += " | "+t.startDateFormatted();
 	        }
 	        Label titleLabel = new Label(title);
 	        titleLabel.setSclass("taskTitle");
@@ -417,7 +434,7 @@ public class MainController extends SelectorComposer<Window> {
 	        row.appendChild(textContainer);
 
 	        // Done button
-	        if(!inHistoric) {
+	        if(!inHistoric && !t.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(today)) {
 		        Button btDone = new Button(" ");
 	        	btDone.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px; color: white;");
 		        if(t.getCloseDate() != null) {
@@ -665,7 +682,7 @@ public class MainController extends SelectorComposer<Window> {
 		
 		if(editingTask != null) {
 			task.setId(editingTask.getId());
-			task.setStartDate(editingTask.getStartDate());
+			task.setStartDate(dbStartDate.getValue());
 			task.setSection(cbSection.getSelectedItem().getValue());
 			editingTask = null;
 		}
@@ -732,6 +749,7 @@ public class MainController extends SelectorComposer<Window> {
 	    btCreateTask.setSclass("add-btn");
 
     	btDeleteTask.setVisible(false);
+    	dbStartDate.setVisible(false);
 	}
 	
 	@Listen("onSelect = #cbFormat")

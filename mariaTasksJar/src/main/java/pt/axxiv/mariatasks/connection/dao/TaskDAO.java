@@ -135,11 +135,7 @@ public class TaskDAO {
     public List<Task> findAllOpenByUser(ObjectId userId) {
         List<Task> tasks = new ArrayList<>();
         for (Document doc : collection.find(and(eq(TaskFields.CLOSE_DATE, null),eq(TaskFields.OWNER, userId)))) {
-        	Task task = createFromDocument(doc);
-	        
-	        if (task.getStartDate() == null || !task.getStartDate().after(new Date())) {
-	            tasks.add(task);
-	        }
+	        tasks.add(createFromDocument(doc));
 	    }
         
         Collections.sort(tasks, Collections.reverseOrder());

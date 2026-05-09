@@ -61,6 +61,8 @@
 			    <vlayout id="layoutForDate" visible="false" sclass="extra-fields">
 			    	<datebox id="dbSelectedDate"/>
 			    </vlayout>
+			    	
+			    <datebox id="dbStartDate" visible="false" tooltiptext="Start date"/>
 			    
 			    <combobox id="cbSection" readonly="true" visible="false"/>
 			    

@@ -133,6 +133,15 @@ public class Task implements Comparable<Task> {
 	    return formatter.format(closeDate);
 	}
 
+	public String startDateFormatted() {
+	    if (startDate == null) {
+	        return "";
+	    }
+
+	    SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+	    return formatter.format(startDate);
+	}
+
 	@Override
 	public int compareTo(Task arg0) {
 		return getStartDate().compareTo(arg0.getStartDate());
