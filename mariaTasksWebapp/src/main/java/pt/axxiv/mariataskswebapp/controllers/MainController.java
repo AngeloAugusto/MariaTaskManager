@@ -234,11 +234,18 @@ public class MainController extends SelectorComposer<Window> {
 		
 		List<Task> taskList = new ArrayList<>();
 		Task parent = new TaskDAO().findById(editingTask.getParent());
-
-		while (parent != null) {
+		int count = 0;
+	    boolean hasMore = false;
+	    
+		while (parent != null && count<15) {
 		    taskList.add(parent);
 		    parent = new TaskDAO().findById(parent.getParent());
+		    count++;
 		}
+		
+	    if (parent != null) {
+	        hasMore = true;
+	    }
 		
 		if(taskList.size()<=0) {
 			return false;
@@ -253,7 +260,6 @@ public class MainController extends SelectorComposer<Window> {
 	        
 	        Div textContainer = new Div();
 	        textContainer.setStyle("display: flex; flex-direction: column;");
-	        textContainer.setTooltiptext(t.getStartDate().toString());
 	        String closeDate = t.closedDateFormatted();
 	        Label titleLabel = new Label(closeDate);
 	        titleLabel.setSclass("taskTitle");
@@ -261,6 +267,22 @@ public class MainController extends SelectorComposer<Window> {
 	        row.appendChild(textContainer);
 	        taskHistoryList.appendChild(row);
 		}
+    	
+        if (hasMore) {
+            Div row = new Div();
+            row.setSclass("line");
+            
+            Div textContainer = new Div();
+            textContainer.setStyle("display: flex; flex-direction: column;");
+            
+            Label moreLabel = new Label("and more...");
+            moreLabel.setSclass("taskTitle");
+            textContainer.appendChild(moreLabel);
+            row.appendChild(textContainer);
+            taskHistoryList.appendChild(row);
+        }
+    	
+    	
 		
 		return true;
 	}
