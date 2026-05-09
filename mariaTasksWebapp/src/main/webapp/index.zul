@@ -72,7 +72,7 @@
 		        </hbox>
 		        <separator/>
 		        
-		        <vlayout id="taskHistory" sclass="extra-fields" visible="false">
+		        <vlayout id="taskHistory" sclass="extra-fields" style="max-height: 400px; overflow: auto" visible="false">
 					<hlayout sclass="task-header">
 						<hlayout spacing="7px" sclass="z-valign-middle">
 				    		<label value="Task history" sclass="sub-title"/>
