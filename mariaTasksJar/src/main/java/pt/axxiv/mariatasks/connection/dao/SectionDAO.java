@@ -9,7 +9,12 @@ import com.mongodb.client.MongoDatabase;
 
 import pt.axxiv.mariatasks.connection.MongoDBConnectionOffline;
 import pt.axxiv.mariatasks.connection.labels.SectionFields;
+import pt.axxiv.mariatasks.connection.labels.TaskFields;
 import pt.axxiv.mariatasks.data.Section;
+import pt.axxiv.mariatasks.data.Task;
+import pt.axxiv.mariatasks.data.TaskCustom;
+import pt.axxiv.mariatasks.data.TaskDate;
+
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.and;
 import java.util.ArrayList;
@@ -78,6 +83,37 @@ public class SectionDAO {
 
 	public void deleteAll() {
 		collection.deleteMany(new Document());
+	}
+	
+	public Section update(Section section) {
+	    if (section.getId() == null) {
+	        throw new IllegalArgumentException("Task ID cannot be null for update operation");
+	    }
+	    
+	    // Check if task exists
+	    Document existingDoc = collection.find(eq(TaskFields.ID, section.getId())).first();
+	    if (existingDoc == null) {
+	        throw new IllegalArgumentException("Section not found with id: " + section.getId());
+	    }
+	    
+	    // Create update document
+	    Document updateDoc = new Document();
+	    
+	    // Add all fields that should be updated
+	    if (section.getTitle() != null) {
+	        updateDoc.append(SectionFields.TITLE, section.getTitle());
+	    }
+	    if (section.getIcon() != null) {
+	        updateDoc.append(SectionFields.ICON, section.getIcon());
+	    }
+	    
+	    // Only update if there are fields to update
+	    if (!updateDoc.isEmpty()) {
+	        collection.updateOne(eq(SectionFields.ID, section.getId()), new Document("$set", updateDoc));
+	    }
+	    
+	    // Return the updated task
+	    return findById(section.getId());
 	}
 
 }
