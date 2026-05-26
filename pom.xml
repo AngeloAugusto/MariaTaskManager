@@ -15,6 +15,7 @@
 	<modules>
         <module>mariaTasksJar</module>
         <module>mariaTasksWebapp</module>
+        <module>mariaTasksApi</module>
     </modules>
 
 </project>
