@@ -17,6 +17,7 @@ import pt.axxiv.mariatasks.data.TaskCustom;
 import pt.axxiv.mariatasks.data.TaskDaily;
 import pt.axxiv.mariatasks.data.TaskDate;
 import pt.axxiv.mariatasks.data.TaskOnce;
+import pt.axxiv.mariatasks.data.TaskWeekday;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.and;
@@ -52,6 +53,7 @@ public class TaskDAO {
 		        case "TaskDaily" -> task = new TaskDaily();
 		        case "TaskCustom" -> task = new TaskCustom();
 		        case "TaskDate" -> task = new TaskDate();
+		        case "TaskWeekday" -> task = new TaskWeekday();
 		        default -> task = new Task(); // fallback
 		    }
 	    }
@@ -76,6 +78,10 @@ public class TaskDAO {
 	    if (task instanceof TaskDate costum) {
 	    	costum.setSelectedDate(doc.getDate(TaskFields.SELECTED_DATE));
         }
+	    if (task instanceof TaskWeekday costum) {
+	    	costum.setSelectedWeekdays(doc.getList(TaskFields.SELECTED_WEEK_DAYS, Integer.class));
+	    	costum.setWeekday(doc.getString(TaskFields.WEEKDAY));
+        }
 	    
 	    return task;
 	}
@@ -97,6 +103,10 @@ public class TaskDAO {
         }
 	    if (task instanceof TaskDate costum) {
         	doc.append(TaskFields.SELECTED_DATE, costum.getSelectedDate());
+        }
+	    if (task instanceof TaskWeekday costum) {
+        	doc.append(TaskFields.SELECTED_WEEK_DAYS, costum.getSelectedWeekdays());
+        	doc.append(TaskFields.WEEKDAY, costum.getWeekday());
         }
         
 	    if(task.getId() == null) {
@@ -232,6 +242,11 @@ public class TaskDAO {
                         .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
                 include = !selected.isAfter(today);
 
+            } else if (task instanceof TaskWeekday taskWeekday) {
+                LocalDate start = taskWeekday.getStartDate()
+                        .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                include = !start.isAfter(today);
+
             } else if (task instanceof TaskOnce && task.getTimeOfTheDay() != null) {
                 include = true;
             }
@@ -350,6 +365,14 @@ public class TaskDAO {
 	    if (task instanceof TaskDate dateTask) {
 	        if (dateTask.getSelectedDate() != null) {
 	            updateDoc.append(TaskFields.SELECTED_DATE, dateTask.getSelectedDate());
+	        }
+	    }
+	    if (task instanceof TaskWeekday dateWeekday) {
+	        if (dateWeekday.getSelectedWeekdays() != null && dateWeekday.getSelectedWeekdays().size()>0) {
+	            updateDoc.append(TaskFields.SELECTED_WEEK_DAYS, dateWeekday.getSelectedWeekdays());
+	        }
+	        if (dateWeekday.getWeekday() != null) {
+	            updateDoc.append(TaskFields.WEEKDAY, dateWeekday.getWeekday());
 	        }
 	    }
 	    

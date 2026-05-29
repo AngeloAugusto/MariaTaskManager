@@ -1,10 +1,11 @@
 package pt.axxiv.mariatasks.data;
 
 public enum TaskFormat {
-	ONCE("Uma vez", 1),
-    EVERY_DAY("Diária", 2),
-    FREQUENCY("Frequência", 5),
-    DATE("Data", 6);
+	ONCE("Once", 1),
+    EVERY_DAY("Daily", 2),
+    FREQUENCY("Frequency", 5),
+    DATE("Date", 6),
+    WEEKDAY("Day of the week", 7);
 
     private final String label;
     private final int value;

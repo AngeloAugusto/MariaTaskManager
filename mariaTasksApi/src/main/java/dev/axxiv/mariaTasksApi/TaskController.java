@@ -265,8 +265,7 @@ public class TaskController {
 	            taskDTO.getNotes(),
 	            sectionId,
 	            user.getId(),
-	            taskDTO.getTimeOfTheDay()
-	        );
+	            taskDTO.getTimeOfTheDay());
 
 	        // Set additional fields if needed
 	        if (createdTask instanceof TaskCustom && taskDTO.getPeriod() != null && taskDTO.getFrequencyType() != null) {
@@ -277,6 +276,8 @@ public class TaskController {
 	            TaskDate dateTask = (TaskDate) createdTask;
 	            dateTask.setSelectedDate(taskDTO.getSelectedDate());
 	        }
+	        
+	        //TODO: Aplicar o weekdays
 
 	        // Set start date if provided
 	        if (taskDTO.getStartDate() != null) {

@@ -67,6 +67,18 @@
 			    	<datebox id="dbSelectedDate"/>
 			    </vlayout>
 			    	
+			    <vlayout id="layoutForWeekday" visible="false" sclass="extra-fields">
+				    <div style="display: flex; justify-content: center; align-items: center;">
+				        <button id="btMon" label="MON" sclass="add-btn" style="font-size:9px;"/>
+				        <button id="btTue" label="TUE" sclass="add-btn" style="font-size:9px;"/>
+				        <button id="btWed" label="WED" sclass="add-btn" style="font-size:9px;"/>
+				        <button id="btThu" label="THU" sclass="add-btn" style="font-size:9px;"/>
+				        <button id="btFri" label="FRI" sclass="add-btn" style="font-size:9px;"/>
+				        <button id="btSat" label="SAT" sclass="add-btn" style="font-size:9px;"/>
+				        <button id="btSun" label="SUN" sclass="add-btn" style="font-size:9px;"/>
+				    </div>
+				</vlayout>
+			    	
 			    <datebox id="dbStartDate" visible="false" tooltiptext="Start date"/>
 			    
 			    <combobox id="cbSection" readonly="true" visible="false"/>

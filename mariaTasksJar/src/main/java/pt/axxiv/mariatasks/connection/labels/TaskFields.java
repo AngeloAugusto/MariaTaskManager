@@ -18,4 +18,7 @@ public class TaskFields {
 
 	public static final String FREQUENCY_TYPE = "frequencyType";
 	public static final String PERIOD = "period";
+
+	public static final String SELECTED_WEEK_DAYS = "selectedWeekdays";
+	public static final String WEEKDAY = "weekday";
 }

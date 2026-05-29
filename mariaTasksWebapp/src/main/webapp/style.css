@@ -109,6 +109,9 @@
 	border: 1px solid #777;
 	margin-right: 2px;
 }
+.add-btn.selected, .add-btn.selected:hover {
+	border: 1.5px solid #fff !important;
+}
 
 .menu-item {
 	height: 50px;

@@ -1,17 +1,21 @@
 package pt.axxiv.mariataskswebapp.controllers;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -35,8 +39,6 @@ import org.zkoss.zul.Intbox;
 import org.zkoss.zul.Label;
 import org.zkoss.zul.ListModelList;
 import org.zkoss.zul.Popup;
-import org.zkoss.zul.Row;
-import org.zkoss.zul.Rows;
 import org.zkoss.zul.Textbox;
 import org.zkoss.zul.Timebox;
 import org.zkoss.zul.Timer;
@@ -47,7 +49,6 @@ import pt.axxiv.mariatasks.connection.dao.SectionDAO;
 import pt.axxiv.mariatasks.connection.dao.TaskDAO;
 import pt.axxiv.mariatasks.connection.dao.UserDAO;
 import pt.axxiv.mariatasks.connection.factory.TaskFactory;
-import pt.axxiv.mariatasks.connection.labels.SectionFields;
 import pt.axxiv.mariatasks.connection.labels.TaskFields;
 import pt.axxiv.mariatasks.data.FrequencyTypes;
 import pt.axxiv.mariatasks.data.Section;
@@ -57,6 +58,7 @@ import pt.axxiv.mariatasks.data.TaskDaily;
 import pt.axxiv.mariatasks.data.TaskDate;
 import pt.axxiv.mariatasks.data.TaskFormat;
 import pt.axxiv.mariatasks.data.TaskOnce;
+import pt.axxiv.mariatasks.data.TaskWeekday;
 import pt.axxiv.mariatasks.data.User;
 import pt.axxiv.mariataskswebapp.auth.AuthUtil;
 
@@ -94,6 +96,8 @@ public class MainController extends SelectorComposer<Window> {
 	@Wire
     private Vlayout layoutForDate;
 	@Wire
+    private Vlayout layoutForWeekday;
+	@Wire
 	private Intbox ibPeriod;
 	@Wire
 	private Combobox cbFrequency;
@@ -124,6 +128,20 @@ public class MainController extends SelectorComposer<Window> {
     @Wire
     private Button btIcon;
     @Wire
+    private Button btMon;
+    @Wire
+    private Button btTue;
+    @Wire
+    private Button btWed;
+    @Wire
+    private Button btThu;
+    @Wire
+    private Button btFri;
+    @Wire
+    private Button btSat;
+    @Wire
+    private Button btSun;
+    @Wire
 	private Popup ppIcon;
     @Wire
 	private Datebox dbStartDate;
@@ -140,6 +158,7 @@ public class MainController extends SelectorComposer<Window> {
 	private Map<Section, List<Task>> tasksMap = new HashMap<Section, List<Task>>();
 	private ListModelList<FrequencyTypes> frequencyFormatListModelList;
 	private ListModelList<TaskFormat> taskFormatListModelList ;
+	private List<Integer> weekdays = new ArrayList<Integer>();
 
 	private boolean showSectionTitle = false;
 	private boolean inHistoric = false;
@@ -422,7 +441,16 @@ public class MainController extends SelectorComposer<Window> {
         	dbSelectedDate.setValue(tDate.getSelectedDate());
         	
         	onSelectDateOnTaskFormat();
-        } 
+        } else if(editingTask instanceof TaskWeekday tWeekday) {
+        	taskFormatListModelList.addToSelection(TaskFormat.WEEKDAY);
+
+        	weekdays = tWeekday.getSelectedWeekdays();
+        	loadWeekdayButtons();
+        	
+        	onSelectWeekdayOnTaskFormat();
+        } else {
+        	System.out.println("WHAT FORMAT???");
+        }
 	}
 
 	private void generateTaskList(List<Task> tasks) {
@@ -466,6 +494,9 @@ public class MainController extends SelectorComposer<Window> {
 	        }
 	        if(t instanceof TaskDate taskDate) {
 	        	title += " ("+taskDate.setSelectedDateString()+")";
+	        }
+	        if(t instanceof TaskWeekday taskWeekday) {
+	        	title += " - ("+taskWeekday.getWeekday()+")";
 	        }
 	        if(t.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(today)) {
 	        	title += " | "+t.startDateFormatted();
@@ -741,6 +772,11 @@ public class MainController extends SelectorComposer<Window> {
 		
 		TaskFormat selectedFormat = (TaskFormat) cbFormat.getSelectedItem().getValue();
 		
+		if(selectedFormat.equals(TaskFormat.WEEKDAY) && (weekdays==null || weekdays.isEmpty() || weekdays.size()<=0)) {
+			Clients.showNotification("No weekday was selected.", layoutForWeekday);
+			return;
+		}
+		
 		Task task = TaskFactory.createTask(selectedFormat, title, notes, selectedSection.getId(), currentUser.getId(), tbTime.getValueInLocalTime());
 		
 		if(editingTask != null) {
@@ -756,6 +792,24 @@ public class MainController extends SelectorComposer<Window> {
 			((TaskCustom) task).setFrequencyTypes(cbFrequency.getSelectedItem().getValue());
 		} else if(task instanceof TaskDate) {
 			((TaskDate) task).setSelectedDate(dbSelectedDate.getValue());
+		}else if(task instanceof TaskWeekday) {
+			((TaskWeekday) task).setSelectedWeekdays(weekdays);
+			
+		    Calendar c = Calendar.getInstance();
+		    c.set(Calendar.HOUR_OF_DAY, 0);
+		    c.set(Calendar.MINUTE, 0);
+		    c.set(Calendar.SECOND, 0);
+		    c.set(Calendar.MILLISECOND, 0);
+		    
+		    int currentDayOfWeek = c.get(Calendar.DAY_OF_WEEK);
+		    int daysToAdd = ((TaskWeekday) task).findNextSelectedWeekday(currentDayOfWeek);
+		    c.add(Calendar.DATE, daysToAdd);
+		    task.setStartDate(c.getTime());
+		    
+		    LocalDate date = c.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			DayOfWeek dow = date.getDayOfWeek();
+			((TaskWeekday)task).setWeekday(dow.getDisplayName(TextStyle.SHORT, Locale.US));
+			
 		}
 		
 
@@ -771,6 +825,8 @@ public class MainController extends SelectorComposer<Window> {
 	    txNotes.setValue("");
 	    taskFormatListModelList.addToSelection(TaskFormat.ONCE);
 	    tbTime.setValue(null);
+	    weekdays = new ArrayList<>();
+	    loadWeekdayButtons();
 	    
 	    editingTask = null;
 
@@ -827,6 +883,8 @@ public class MainController extends SelectorComposer<Window> {
         }else if(selected == TaskFormat.DATE) {
         	onSelectDateOnTaskFormat();
         	clearDateFields();
+		}else if(selected == TaskFormat.WEEKDAY) {
+        	onSelectWeekdayOnTaskFormat();
 		}else {
 			onSelectDefaultOnTaskFormat();
 		}
@@ -835,11 +893,19 @@ public class MainController extends SelectorComposer<Window> {
 	private void onSelectDefaultOnTaskFormat() {
     	layoutForDate.setVisible(false);
     	layoutForFrequency.setVisible(false);	
+		layoutForWeekday.setVisible(false);
 	}
 
 	private void onSelectDateOnTaskFormat() {
     	layoutForDate.setVisible(true);
     	layoutForFrequency.setVisible(false);
+		layoutForWeekday.setVisible(false);
+	}
+
+	private void onSelectWeekdayOnTaskFormat() {
+		layoutForWeekday.setVisible(true);
+		layoutForFrequency.setVisible(false);
+		layoutForDate.setVisible(false);
 	}
 	
 	private void clearDateFields() {
@@ -849,6 +915,7 @@ public class MainController extends SelectorComposer<Window> {
 	private void onSelectFrequencyOnTaskFormat() {
     	layoutForDate.setVisible(false);
     	layoutForFrequency.setVisible(true);
+		layoutForWeekday.setVisible(false);
 	}
 	
 	private void clearFrequencyFields() {
@@ -897,8 +964,7 @@ public class MainController extends SelectorComposer<Window> {
 			
 			selectedSection.setTitle(txSection.getValue());
 			selectedSection.setIcon(btIcon.getIconSclass());
-			new SectionDAO().updateValue(selectedSection.getId(), SectionFields.TITLE, txSection.getValue());
-			new SectionDAO().updateValue(selectedSection.getId(), SectionFields.ICON, btIcon.getIconSclass());
+			new SectionDAO().update(selectedSection);
 			
 			int index = sections.indexOf(section);
 			sections.remove(index);
@@ -1003,6 +1069,60 @@ public class MainController extends SelectorComposer<Window> {
 	@Listen("onClick = #btNo")
 	public void onClickbtNo(Event e) {
 		ppConfirmDeletion.close();
+	}
+
+	@Listen("onClick = #btMon")
+	public void onClickbtMon(Event e) {
+		toggleWeekDay(0);
+	}
+
+	@Listen("onClick = #btTue")
+	public void onClickbtTue(Event e) {
+		toggleWeekDay(1);
+	}
+
+	@Listen("onClick = #btWed")
+	public void onClickbtWed(Event e) {
+		toggleWeekDay(2);
+	}
+
+	@Listen("onClick = #btThu")
+	public void onClickbtThu(Event e) {
+		toggleWeekDay(3);
+	}
+
+	@Listen("onClick = #btFri")
+	public void onClickbtFri(Event e) {
+		toggleWeekDay(4);
+	}
+
+	@Listen("onClick = #btSat")
+	public void onClickbtSat(Event e) {
+		toggleWeekDay(5);
+	}
+
+	@Listen("onClick = #btSun")
+	public void onClickbtSun(Event e) {
+		toggleWeekDay(6);
+	}
+	
+	private void toggleWeekDay(int weekday) {
+		if (weekdays.contains(weekday)) {
+		    weekdays.remove(Integer.valueOf(weekday));
+		} else {
+		    weekdays.add(weekday);
+		}
+		loadWeekdayButtons();
+	}
+	
+	private void loadWeekdayButtons() {
+		btMon.setSclass("add-btn" + (weekdays.contains(0) ? " selected" : ""));
+		btTue.setSclass("add-btn" + (weekdays.contains(1) ? " selected" : ""));
+		btWed.setSclass("add-btn" + (weekdays.contains(2) ? " selected" : ""));
+		btThu.setSclass("add-btn" + (weekdays.contains(3) ? " selected" : ""));
+		btFri.setSclass("add-btn" + (weekdays.contains(4) ? " selected" : ""));
+		btSat.setSclass("add-btn" + (weekdays.contains(5) ? " selected" : ""));
+		btSun.setSclass("add-btn" + (weekdays.contains(6) ? " selected" : ""));
 	}
 	
 	
