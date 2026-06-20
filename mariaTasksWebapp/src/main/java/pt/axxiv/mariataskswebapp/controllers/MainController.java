@@ -282,6 +282,13 @@ public class MainController extends SelectorComposer<Window> {
 	        Div textContainer = new Div();
 	        textContainer.setStyle("display: flex; flex-direction: column;");
 	        String closeDate = t.closedDateFormatted();
+	        if (t instanceof TaskWeekday) {
+	        	if(((TaskWeekday) t).isDone()) {
+	        		closeDate+=" (Done)";
+	        	}else {
+	        		closeDate+=" (Not Done)";
+	        	}
+	        }
 	        Label titleLabel = new Label(closeDate);
 	        titleLabel.setSclass("taskTitle");
 	        textContainer.appendChild(titleLabel);
@@ -337,6 +344,9 @@ public class MainController extends SelectorComposer<Window> {
 	        if(t instanceof TaskDate taskDate) {
 	        	title += " ("+taskDate.setSelectedDateString()+")";
 	        }
+	        if(t instanceof TaskWeekday taskWeekday) {
+	        	title += " - ("+taskWeekday.getWeekday()+")";
+	        }
 	        Label titleLabel = new Label(title);
 	        titleLabel.setSclass("taskTitle");
 	        textContainer.appendChild(titleLabel);
@@ -356,10 +366,31 @@ public class MainController extends SelectorComposer<Window> {
 	        row.appendChild(textContainer);
 
 	        // Done button
-	        Button btDone = new Button(" ");
-	        btDone.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px;");
-	        btDone.addEventListener("onClick", e -> onClickDone(t));
-	        row.appendChild(btDone);
+        	if(t instanceof TaskWeekday && t.getCloseDate()==null) {
+        		Div div = new Div();
+        		Button btYes = new Button(" ");
+        		btYes.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px; color: white;");
+        		btYes.addEventListener("onClick", e -> onClickYes(t));
+        		btYes.setIconSclass("z-icon-check");
+		        
+		        Button btNo = new Button(" ");
+		        btNo.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px; color: white;");
+		        btNo.addEventListener("onClick", e -> onClickNo(t));
+		        btNo.setIconSclass("z-icon-times");
+
+		        div.appendChild(btNo);
+		        div.appendChild(btYes);
+		        row.appendChild(div);
+        	}else {
+		        Button btDone = new Button(" ");
+	        	btDone.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px; color: white;");
+		        if(t.getCloseDate() != null) {
+		        	btDone.setIconSclass("z-icon-check");
+		        }
+		        btDone.addEventListener("onClick", e -> onClickDone(t));
+		        row.appendChild(btDone);
+        	}
+	        
 	        
 
 	        todayTaskList.appendChild(row);
@@ -530,19 +561,122 @@ public class MainController extends SelectorComposer<Window> {
 
 	        // Done button
 	        if(!inHistoric && !t.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(today)) {
-		        Button btDone = new Button(" ");
-	        	btDone.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px; color: white;");
-		        if(t.getCloseDate() != null) {
-		        	btDone.setIconSclass("z-icon-check");
-		        }
-		        btDone.addEventListener("onClick", e -> onClickDone(t));
-		        row.appendChild(btDone);
+	        	if(t instanceof TaskWeekday && t.getCloseDate()==null) {
+	        		Div div = new Div();
+	        		Button btYes = new Button(" ");
+	        		btYes.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px; color: white;");
+	        		btYes.addEventListener("onClick", e -> onClickYes(t));
+	        		btYes.setIconSclass("z-icon-check");
+			        
+			        Button btNo = new Button(" ");
+			        btNo.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px; color: white;");
+			        btNo.addEventListener("onClick", e -> onClickNo(t));
+			        btNo.setIconSclass("z-icon-times");
+
+			        div.appendChild(btNo);
+			        div.appendChild(btYes);
+			        row.appendChild(div);
+	        	}else {
+			        Button btDone = new Button(" ");
+		        	btDone.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px; color: white;");
+			        if(t.getCloseDate() != null) {
+			        	btDone.setIconSclass("z-icon-check");
+			        }
+			        btDone.addEventListener("onClick", e -> onClickDone(t));
+			        row.appendChild(btDone);
+	        	}
 	        }
 
 	        taskList.appendChild(row);
 	    }
 	}
 	
+	private void onClickNo(Task t) {
+		
+		if(editingTask != null) {
+    		closeNewTaskWindow();
+    		editingTask = null;
+    	}
+		
+		if(inHistoric)
+			closeHistoric();
+		
+		
+		if(t.getCloseDate() != null) {
+			t.setCloseDate(null);
+			new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, null);
+			
+			if(t instanceof TaskWeekday) {
+				((TaskWeekday) t).setDone(false);
+				new TaskDAO().updateValue(t.getId(), TaskFields.DONE, false);
+			}
+			
+			Task hasNewRollingTask = new TaskDAO().findByParent(t.getId());
+			if(hasNewRollingTask != null) {
+				new TaskDAO().delete(hasNewRollingTask.getId());
+			}
+		}else {
+			t.setClosed();
+	        new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, t.getCloseDate());
+	        
+	        if(t instanceof TaskWeekday) {
+				((TaskWeekday) t).setDone(false);
+				new TaskDAO().updateValue(t.getId(), TaskFields.DONE, false);
+			}
+	        
+	        Task task = TaskFactory.createRollingTask(t);
+	        if(task != null) {
+		    	new TaskDAO().insert(task);
+	        }
+		}
+        
+        updateTaskMap();
+	}
+
+	private void onClickYes(Task t) {
+
+		
+		if(editingTask != null) {
+    		closeNewTaskWindow();
+    		editingTask = null;
+    	}
+		
+		if(inHistoric)
+			closeHistoric();
+		
+		
+		if(t.getCloseDate() != null) {
+			t.setCloseDate(null);
+			new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, null);
+			
+			if(t instanceof TaskWeekday) {
+				((TaskWeekday) t).setDone(true);
+				new TaskDAO().updateValue(t.getId(), TaskFields.DONE, true);
+			}
+			
+			Task hasNewRollingTask = new TaskDAO().findByParent(t.getId());
+			if(hasNewRollingTask != null) {
+				new TaskDAO().delete(hasNewRollingTask.getId());
+			}
+		}else {
+			t.setClosed();
+	        new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, t.getCloseDate());
+	        
+	        if(t instanceof TaskWeekday) {
+				((TaskWeekday) t).setDone(true);
+				new TaskDAO().updateValue(t.getId(), TaskFields.DONE, true);
+			}
+	        
+	        Task task = TaskFactory.createRollingTask(t);
+	        if(task != null) {
+		    	new TaskDAO().insert(task);
+	        }
+		}
+        
+        updateTaskMap();
+		
+	}
+
 	private void generateSectionList() {
 	    while (menuItems.getFirstChild() != null)
 	    	menuItems.removeChild(menuItems.getFirstChild());

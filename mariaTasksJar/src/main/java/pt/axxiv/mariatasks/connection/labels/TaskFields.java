@@ -21,4 +21,5 @@ public class TaskFields {
 
 	public static final String SELECTED_WEEK_DAYS = "selectedWeekdays";
 	public static final String WEEKDAY = "weekday";
+	public static final String DONE = "done";
 }

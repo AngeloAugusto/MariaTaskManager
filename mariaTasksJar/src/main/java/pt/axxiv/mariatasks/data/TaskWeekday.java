@@ -11,6 +11,7 @@ public class TaskWeekday extends Task{
 
 	private List<Integer> selectedWeekdays;
 	private String weekday;
+	private boolean done;
 
 	public TaskWeekday() {
 		super();
@@ -63,6 +64,14 @@ public class TaskWeekday extends Task{
 	    
 	    // Fallback: add 7 days if no weekday found (shouldn't happen if selectedWeekdays is not empty)
 	    return 7;
+	}
+
+	public boolean isDone() {
+		return done;
+	}
+
+	public void setDone(boolean done) {
+		this.done = done;
 	}
 	
 }

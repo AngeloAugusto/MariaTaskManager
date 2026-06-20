@@ -81,6 +81,8 @@ public class TaskDAO {
 	    if (task instanceof TaskWeekday costum) {
 	    	costum.setSelectedWeekdays(doc.getList(TaskFields.SELECTED_WEEK_DAYS, Integer.class));
 	    	costum.setWeekday(doc.getString(TaskFields.WEEKDAY));
+	    	if(doc.getBoolean(TaskFields.DONE) != null)
+	    		costum.setDone(doc.getBoolean(TaskFields.DONE));
         }
 	    
 	    return task;
@@ -107,6 +109,7 @@ public class TaskDAO {
 	    if (task instanceof TaskWeekday costum) {
         	doc.append(TaskFields.SELECTED_WEEK_DAYS, costum.getSelectedWeekdays());
         	doc.append(TaskFields.WEEKDAY, costum.getWeekday());
+        	doc.append(TaskFields.DONE, costum.isDone());
         }
         
 	    if(task.getId() == null) {
@@ -374,6 +377,8 @@ public class TaskDAO {
 	        if (dateWeekday.getWeekday() != null) {
 	            updateDoc.append(TaskFields.WEEKDAY, dateWeekday.getWeekday());
 	        }
+            updateDoc.append(TaskFields.DONE, dateWeekday.isDone());
+	        
 	    }
 	    
 	    // Only update if there are fields to update
