@@ -25,7 +25,12 @@
 			<!-- Task Section -->
 			<vlayout id="taskSection" sclass="task-section" vflex="1">
 				<vlayout id="todayTaskSection" sclass="task-section-border" style="max-height: 300px; overflow: auto">
-					<label value="Today" sclass="section-title"/>
+					<hlayout sclass="task-header">
+						<hlayout spacing="7px" sclass="z-valign-middle">
+							<label value="Today" sclass="section-title"/>
+						</hlayout>
+						<button id="btCollapseToday" sclass="add-btn" iconSclass="z-icon-chevron-up"/>
+					</hlayout>
 					<vlayout id="todayTaskList" sclass="task-list"/>
 				</vlayout>
 				<separator></separator>

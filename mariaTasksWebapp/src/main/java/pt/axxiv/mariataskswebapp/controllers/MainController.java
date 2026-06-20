@@ -70,6 +70,8 @@ public class MainController extends SelectorComposer<Window> {
 	@Wire
 	private Button btCreateTask;
 	@Wire
+	private Button btCollapseToday;
+	@Wire
 	private Vlayout taskSection;
 	@Wire
 	private Vlayout todayTaskList;
@@ -669,7 +671,6 @@ public class MainController extends SelectorComposer<Window> {
 	    return input.replaceAll("<[^>]*>", "").trim();
 	}
 	
-
 	public String convertToHtml(String input) {
 	    if (input == null || input.isEmpty()) return "";
 
@@ -920,7 +921,6 @@ public class MainController extends SelectorComposer<Window> {
 		generateSectionList();
 	}
 
-
 	@Listen("onClick = #btLogout")
 	public void onClickbtLogout(Event e) {
 		AuthUtil.logout();
@@ -1079,6 +1079,17 @@ public class MainController extends SelectorComposer<Window> {
 	    updateSections();
 		generateSectionList();
 	    updateTaskMap();
+	}
+	
+	@Listen("onClick = #btCollapseToday")
+	public void onClickbtCollapseToday(Event e) {
+		todayTaskList.setVisible(!todayTaskList.isVisible());
+		boolean isDown = btCollapseToday.getIconSclass().contains("down");
+		if (isDown) {
+			btCollapseToday.setIconSclass("z-icon-chevron-up");
+	    } else {
+			btCollapseToday.setIconSclass("z-icon-chevron-down");
+	    }
 	}
 	
 	private void updateSections() {
