@@ -331,10 +331,11 @@ public class MainController extends SelectorComposer<Window> {
 	    for (Task t : tasks) {
 	        Div row = new Div();
 	        row.setSclass("line");
+			row.setStyle("display: flex; align-items: center;");
 
 	        // Container for title + notes
 	        Div textContainer = new Div();
-	        textContainer.setStyle("display: flex; flex-direction: column;");
+			textContainer.setStyle("display: flex; flex-direction: column; flex: 1; min-width: 0;");
 	        textContainer.setTooltiptext(t.getStartDate().toString());
 
 	        // Title
@@ -365,6 +366,10 @@ public class MainController extends SelectorComposer<Window> {
 	        
 	        row.addEventListener("onClick", e -> onClickOnTaskRow(t));
 	        row.appendChild(textContainer);
+
+			Div separator = new Div();
+			separator.setStyle("width: 1px; align-self: stretch; background: #777; margin-left: auto; margin-right: 20px; flex-shrink: 0;");
+			row.appendChild(separator);
 
 	        // Done button
         	if(t instanceof TaskWeekday && t.getCloseDate()==null) {
