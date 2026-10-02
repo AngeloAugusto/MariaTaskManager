@@ -85,6 +85,7 @@
                 <configuration>
                     <warName>mariatasksapi</warName>
                     <failOnMissingWebXml>false</failOnMissingWebXml>  <!-- Not required for Servlet 3.0+ -->
+                    <outputDirectory>./deploy</outputDirectory>
                 </configuration>
             </plugin>
 
