@@ -259,6 +259,12 @@
 	color: white;
 }
 
+.subTaskTitle {
+	font-size: 14px;
+	font-weight: bold;
+	color: white;
+}
+
 .popupText {
 	font-size: 14px;
 	color: white;

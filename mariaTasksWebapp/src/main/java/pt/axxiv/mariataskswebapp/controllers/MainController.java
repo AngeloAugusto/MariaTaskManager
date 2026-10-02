@@ -46,20 +46,13 @@ import org.zkoss.zul.Vlayout;
 import org.zkoss.zul.Window;
 
 import pt.axxiv.mariatasks.connection.dao.SectionDAO;
+import pt.axxiv.mariatasks.connection.dao.SubTaskDAO;
 import pt.axxiv.mariatasks.connection.dao.TaskDAO;
 import pt.axxiv.mariatasks.connection.dao.UserDAO;
 import pt.axxiv.mariatasks.connection.factory.TaskFactory;
+import pt.axxiv.mariatasks.connection.labels.SubTaskFields;
 import pt.axxiv.mariatasks.connection.labels.TaskFields;
-import pt.axxiv.mariatasks.data.FrequencyTypes;
-import pt.axxiv.mariatasks.data.Section;
-import pt.axxiv.mariatasks.data.Task;
-import pt.axxiv.mariatasks.data.TaskCustom;
-import pt.axxiv.mariatasks.data.TaskDaily;
-import pt.axxiv.mariatasks.data.TaskDate;
-import pt.axxiv.mariatasks.data.TaskFormat;
-import pt.axxiv.mariatasks.data.TaskOnce;
-import pt.axxiv.mariatasks.data.TaskWeekday;
-import pt.axxiv.mariatasks.data.User;
+import pt.axxiv.mariatasks.data.*;
 import pt.axxiv.mariataskswebapp.auth.AuthUtil;
 
 public class MainController extends SelectorComposer<Window> {
@@ -98,6 +91,8 @@ public class MainController extends SelectorComposer<Window> {
 	@Wire
     private Vlayout layoutForWeekday;
 	@Wire
+	private Vlayout layoutSubTask;
+	@Wire
 	private Intbox ibPeriod;
 	@Wire
 	private Combobox cbFrequency;
@@ -112,7 +107,11 @@ public class MainController extends SelectorComposer<Window> {
 	@Wire
 	private Popup ppConfirmDeletionTask;
 	@Wire
+	private Popup ppConfirmDeletionSubTask;
+	@Wire
 	private Textbox txSection;
+	@Wire
+	private Textbox txSubTaskTitle;
 	@Wire
 	private Button btProfile;
 	@Wire
@@ -151,6 +150,8 @@ public class MainController extends SelectorComposer<Window> {
     private Vlayout taskHistoryList;
     @Wire
     private Vlayout taskHistory;
+    @Wire
+    private Vlayout subtaskList;
 
     private Window window;
 
@@ -159,13 +160,15 @@ public class MainController extends SelectorComposer<Window> {
 	private ListModelList<FrequencyTypes> frequencyFormatListModelList;
 	private ListModelList<TaskFormat> taskFormatListModelList ;
 	private List<Integer> weekdays = new ArrayList<Integer>();
+	private List<SubTask> subTasks = new ArrayList<>();
 
 	private boolean showSectionTitle = false;
 	private boolean inHistoric = false;
 	private boolean editSectionTitle = false;
 	private Section selectedSection;
-	
+
 	private Task editingTask = null;
+	private SubTask editingSubTask = null;
 
 	private User currentUser;
 	
@@ -248,8 +251,6 @@ public class MainController extends SelectorComposer<Window> {
 	public void onClickBtIcon(Event e) {
 	    ppIcon.open(btIcon, "before_end");
 	}
-	
-
 
 	private boolean generateTaskHistory() {
 		
@@ -428,6 +429,7 @@ public class MainController extends SelectorComposer<Window> {
 	private void onClickOnTaskRow(Task t) {
 		if(editingTask == null || editingTask != t) {
         	editingTask = t;
+			subTasks = new ArrayList<>();
     		openNewTaskWindow();
 
         	btDeleteTask.setVisible(true);
@@ -446,6 +448,9 @@ public class MainController extends SelectorComposer<Window> {
         txNotes.setValue(convertToText(editingTask.getNotes()));
         
         dbStartDate.setValue(editingTask.getStartDate());
+
+		subTasks = new SubTaskDAO().findByParent(editingTask.getId());
+		generateSubTaskList();
         
         if(editingTask.getTimeOfTheDay()!=null)
         	tbTime.setValue(localTimeToDate(editingTask.getTimeOfTheDay()));
@@ -487,13 +492,13 @@ public class MainController extends SelectorComposer<Window> {
 	private void generateTaskList(List<Task> tasks) {
 	    while (taskList.getFirstChild() != null)
 	        taskList.removeChild(taskList.getFirstChild());
-	    
+
 	    if(tasks.isEmpty() || tasks.size()<=0)
 	    	return;
 
 	    //tasks.stream().filter(t -> t.getSection().equals(selectedSection.getId())).collect(Collectors.toSet())
         LocalDate today = LocalDate.now();
-        
+
 	    boolean hasClosed = tasks.get(0).getCloseDate()!=null;
 	    boolean hasAfterToday = tasks.get(0).getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(today);
 	    for (Task t : tasks) {
@@ -509,13 +514,13 @@ public class MainController extends SelectorComposer<Window> {
 	    		hr.setStyle("width: 90%; margin-top: 15px; margin-bottom: 15px;");
 		        taskList.appendChild(hr);
 	    	}
-	    		
+
 	        Div row = new Div();
 	        row.setSclass("line");
 
 	        // Container for title + notes
 	        Div textContainer = new Div();
-	        textContainer.setStyle("display: flex; flex-direction: column;");
+			textContainer.setStyle("display: flex; flex-direction: column; flex: 1; min-width: 0;");
 	        textContainer.setTooltiptext(t.getStartDate().toString());
 
 	        // Title
@@ -546,13 +551,54 @@ public class MainController extends SelectorComposer<Window> {
 	        	notes.setContent(t.getNotes());
 	        	container.appendChild(notes);
 	        }
-	        
+
+			List<SubTask> subTasks = new SubTaskDAO().findByParent(t.getId());
+			if(!subTasks.isEmpty()){
+				Div subtaskList = new Div();
+				subtaskList.setSclass("subtask-grid");
+				subtaskList.setStyle("display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; margin-left: 10px; margin-right: 10px; width: calc(100% - 20px); margin-top: 10px;");
+
+				for(SubTask subTask : subTasks){
+					Div rowSt = new Div();
+					rowSt.setSclass("line");
+					rowSt.setStyle("box-sizing: border-box; display: flex;");
+
+					// Container for title
+					Div textContainerSt = new Div();
+					textContainerSt.setStyle("display: flex; flex-direction: column; flex: 1; min-width: 0;");
+
+					// Title
+					String titleSt = subTask.getTitle();
+					Label titleLabelSt = new Label(titleSt);
+					titleLabelSt.setSclass("subTaskTitle");
+					textContainerSt.appendChild(titleLabelSt);
+					rowSt.appendChild(textContainerSt);
+
+					Div separator = new Div();
+					separator.setStyle("width: 1px; align-self: stretch; background: #777; margin-left: auto; margin-right: 10px; flex-shrink: 0;");
+					rowSt.appendChild(separator);
+
+					Button btSubDone = new Button(" ");
+					btSubDone.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px; margin-right: 10px; color: white; flex-shrink: 0;");
+					if (subTask.getCloseDate() != null) {
+						btSubDone.setIconSclass("z-icon-check");
+					}
+					btSubDone.setDisabled(t.getCloseDate() != null);
+					btSubDone.addEventListener("onClick", e -> onClickDoneSubTask(subTask));
+					rowSt.appendChild(btSubDone);
+
+
+					subtaskList.appendChild(rowSt);
+				}
+				textContainer.appendChild(subtaskList);
+			}
+
 	        if (inHistoric || t.getCloseDate()!= null) {
 	            Label closedAt = new Label("Task closed at "+t.closedDateFormatted());
 	            closedAt.setStyle("font-size: 12px; color: gray; margin-top: 2px;");
 	            textContainer.appendChild(closedAt);
 	        }
-	        
+
 	        if(!inHistoric && t.getCloseDate()== null) {
 		        row.addEventListener("onClick", e ->onClickOnTaskRow(t));
 	        }
@@ -561,13 +607,18 @@ public class MainController extends SelectorComposer<Window> {
 
 	        // Done button
 	        if(!inHistoric && !t.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(today)) {
+
+				Div separator = new Div();
+				separator.setStyle("width: 1px; align-self: stretch; background: #777; margin-left: auto; margin-right: 20px; flex-shrink: 0;");
+				row.appendChild(separator);
+
 	        	if(t instanceof TaskWeekday && t.getCloseDate()==null) {
 	        		Div div = new Div();
 	        		Button btYes = new Button(" ");
 	        		btYes.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px; color: white;");
 	        		btYes.addEventListener("onClick", e -> onClickYes(t));
 	        		btYes.setIconSclass("z-icon-check");
-			        
+
 			        Button btNo = new Button(" ");
 			        btNo.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px; color: white;");
 			        btNo.addEventListener("onClick", e -> onClickNo(t));
@@ -589,6 +640,25 @@ public class MainController extends SelectorComposer<Window> {
 
 	        taskList.appendChild(row);
 	    }
+	}
+
+	private void onClickDoneSubTask(SubTask t) {
+		if(editingTask != null) {
+			closeNewTaskWindow();
+			editingTask = null;
+		}
+
+		if(inHistoric)
+			closeHistoric();
+
+		if(t.getCloseDate() != null) {
+			t.setCloseDate(null);
+		}else {
+			t.setClosed();
+		}
+		new SubTaskDAO().updateValue(t.getId(), SubTaskFields.CLOSE_DATE, t.getCloseDate());
+
+		updateTaskMap();
 	}
 	
 	private void onClickNo(Task t) {
@@ -948,6 +1018,14 @@ public class MainController extends SelectorComposer<Window> {
 		
 
 		new TaskDAO().insert(task);
+
+		if(!subTasks.isEmpty()){
+			for(SubTask subTask : subTasks){
+				subTask.setParentTask(task.getId());
+				new SubTaskDAO().insert(subTask);
+			}
+			subTasks = new ArrayList<>();
+		}
 		
 		updateTaskMap();
 		
@@ -968,6 +1046,10 @@ public class MainController extends SelectorComposer<Window> {
 	    
 	    clearDateFields();
 	    clearFrequencyFields();
+
+		txSubTaskTitle.setValue("");
+		subTasks = new ArrayList<>();
+		generateSubTaskList();
 	}
 	
 	private void openNewTaskWindow() {
@@ -1367,5 +1449,103 @@ public class MainController extends SelectorComposer<Window> {
         // Convert to Instant, then to Date
         return Date.from(zonedDateTime.toInstant());
     }
+
+	@Listen("onClick = #btAddSubTask")
+	public void onClickbtAddSubTask(Event e) {
+
+		if(txSubTaskTitle.getText().isEmpty()){
+			Clients.showNotification("No sub task title was inserted.", "warning", txSubTaskTitle, "before_start", 3000);
+			return;
+		}
+
+		SubTask subTask = editingSubTask != null ? editingSubTask : new SubTask();
+		subTask.setTitle(txSubTaskTitle.getValue());
+
+		if(editingSubTask == null){
+			subTasks.addFirst(subTask);
+		}
+		editingSubTask = null;
+
+		txSubTaskTitle.setValue("");
+
+		generateSubTaskList();
+	}
+
+	public void generateSubTaskList(){
+		while (subtaskList.getFirstChild() != null)
+			subtaskList.removeChild(subtaskList.getFirstChild());
+
+		if(subTasks == null || subTasks.isEmpty())
+			return;
+
+		for(SubTask subTask : subTasks){
+			Div row = new Div();
+			row.setSclass("line");
+
+			// Container for title + notes
+			Div textContainer = new Div();
+			textContainer.setStyle("display: flex; flex-direction: column;");
+
+			// Title
+			String title = subTask.getTitle();
+			Label titleLabel = new Label(title);
+			titleLabel.setSclass("subTaskTitle");
+			textContainer.appendChild(titleLabel);
+			row.appendChild(textContainer);
+
+			Button btDelete = new Button(" ");
+			btDelete.setStyle(
+					"margin-left: auto; background: #242526; border: 2px solid white; " +
+							"padding: 0; height: 30px; width: 30px; margin-right: 10px; " +
+							"color: white; flex-shrink: 0;"
+			);
+			btDelete.setIconSclass("z-icon-trash");
+			btDelete.addEventListener("onClick", e -> {
+				e.stopPropagation();
+				onClickDeleteSubTask(btDelete, subTask);
+			});
+			row.appendChild(btDelete);
+
+			// Row click
+			row.addEventListener("onClick", e -> onClickOnSubTaskRow(subTask));
+
+			subtaskList.appendChild(row);
+		}
+	}
+
+	private void onClickOnSubTaskRow(SubTask subTask) {
+		editingSubTask = subTask;
+		txSubTaskTitle.setText(subTask.getTitle());
+	}
+
+	private void onClickDeleteSubTask(Button button, SubTask subTask) {
+		editingSubTask = subTask;
+		ppConfirmDeletionSubTask.open(button);
+	}
+
+	@Listen("onClick = #btSubTaskNo")
+	public void onClickbtSubTaskNo(Event e) {
+		ppConfirmDeletionSubTask.close();
+	}
+
+	@Listen("onClick = #btSubTaskYes")
+	public void onClickbtSubTaskYes(Event e) {
+
+		if(editingSubTask.getId()!= null) {
+			new SubTaskDAO().delete(editingSubTask.getId());
+		}
+
+		subTasks.remove(editingSubTask);
+		editingSubTask = null;
+		generateSubTaskList();
+
+		ppConfirmDeletionSubTask.close();
+	}
+
+	@Listen("onOK = #txSubTaskTitle")
+	public void onEnterPresstxSubTaskTitle(Event event) {
+		onClickbtAddSubTask(null);
+	}
+
 }
 

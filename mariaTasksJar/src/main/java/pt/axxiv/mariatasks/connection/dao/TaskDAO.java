@@ -10,14 +10,7 @@ import com.mongodb.client.MongoDatabase;
 
 import pt.axxiv.mariatasks.connection.MongoDBConnectionOffline;
 import pt.axxiv.mariatasks.connection.labels.TaskFields;
-import pt.axxiv.mariatasks.data.FrequencyTypes;
-import pt.axxiv.mariatasks.data.Section;
-import pt.axxiv.mariatasks.data.Task;
-import pt.axxiv.mariatasks.data.TaskCustom;
-import pt.axxiv.mariatasks.data.TaskDaily;
-import pt.axxiv.mariatasks.data.TaskDate;
-import pt.axxiv.mariatasks.data.TaskOnce;
-import pt.axxiv.mariatasks.data.TaskWeekday;
+import pt.axxiv.mariatasks.data.*;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.and;
@@ -145,16 +138,28 @@ public class TaskDAO {
 	}
 
 
-    public List<Task> findAllOpenByUser(ObjectId userId) {
-        List<Task> tasks = new ArrayList<>();
-        for (Document doc : collection.find(and(eq(TaskFields.CLOSE_DATE, null),eq(TaskFields.OWNER, userId)))) {
-	        tasks.add(createFromDocument(doc));
-	    }
-        
-        Collections.sort(tasks, Collections.reverseOrder());
-        
-        return tasks;
-    }
+	public List<Task> findAllOpenByUser(ObjectId userId) {
+		List<Task> tasks = new ArrayList<>();
+		for (Document doc : collection.find(and(eq(TaskFields.CLOSE_DATE, null),eq(TaskFields.OWNER, userId)))) {
+			tasks.add(createFromDocument(doc));
+		}
+
+		Collections.sort(tasks, Collections.reverseOrder());
+
+		return tasks;
+	}
+
+
+	public List<Task> findAllBySection(ObjectId sectionId) {
+		List<Task> tasks = new ArrayList<>();
+		for (Document doc : collection.find(eq(TaskFields.SECTION, sectionId))) {
+			tasks.add(createFromDocument(doc));
+		}
+
+		Collections.sort(tasks, Collections.reverseOrder());
+
+		return tasks;
+	}
 
 
     public List<Task> findAllClosedTodayByUser(ObjectId userId) {
@@ -286,10 +291,23 @@ public class TaskDAO {
     }
 
     public void delete(ObjectId id) {
+		cleanSubTasks(id);
+
         collection.deleteOne(eq(TaskFields.ID, id));
     }
 
-    public void deleteFromSection(ObjectId sectionId) {
+	private void cleanSubTasks(ObjectId id) {
+		SubTaskDAO subTaskDAO = new SubTaskDAO();
+		List<SubTask> subTasks = subTaskDAO.findByParent(id);
+		if(!subTasks.isEmpty()){
+			subTasks.forEach( st -> subTaskDAO.delete(st.getId()) );
+		}
+	}
+
+	public void deleteFromSection(ObjectId sectionId) {
+		List<Task> tasks = this.findAllBySection(sectionId);
+		tasks.forEach( t -> cleanSubTasks(t.getId()) );
+
         collection.deleteMany(eq(TaskFields.SECTION, sectionId));
     }
 
