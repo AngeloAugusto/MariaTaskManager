@@ -30,20 +30,7 @@ import org.zkoss.zk.ui.select.SelectorComposer;
 import org.zkoss.zk.ui.select.annotation.Listen;
 import org.zkoss.zk.ui.select.annotation.Wire;
 import org.zkoss.zk.ui.util.Clients;
-import org.zkoss.zul.Button;
-import org.zkoss.zul.Combobox;
-import org.zkoss.zul.Datebox;
-import org.zkoss.zul.Div;
-import org.zkoss.zul.Html;
-import org.zkoss.zul.Intbox;
-import org.zkoss.zul.Label;
-import org.zkoss.zul.ListModelList;
-import org.zkoss.zul.Popup;
-import org.zkoss.zul.Textbox;
-import org.zkoss.zul.Timebox;
-import org.zkoss.zul.Timer;
-import org.zkoss.zul.Vlayout;
-import org.zkoss.zul.Window;
+import org.zkoss.zul.*;
 
 import pt.axxiv.mariatasks.connection.dao.SectionDAO;
 import pt.axxiv.mariatasks.connection.dao.SubTaskDAO;
@@ -152,6 +139,8 @@ public class MainController extends SelectorComposer<Window> {
     private Vlayout taskHistory;
     @Wire
     private Vlayout subtaskList;
+    @Wire
+    private Checkbox chRolling;
 
     private Window window;
 
@@ -486,6 +475,7 @@ public class MainController extends SelectorComposer<Window> {
         	taskFormatListModelList.addToSelection(TaskFormat.WEEKDAY);
 
         	weekdays = tWeekday.getSelectedWeekdays();
+			chRolling.setChecked(tWeekday.isRolling());
         	loadWeekdayButtons();
         	
         	onSelectWeekdayOnTaskFormat();
@@ -743,6 +733,7 @@ public class MainController extends SelectorComposer<Window> {
 			}
 	        
 	        Task task = TaskFactory.createRollingTask(t);
+
 	        if(task != null) {
 		    	new TaskDAO().insert(task);
 	        }
@@ -1003,6 +994,7 @@ public class MainController extends SelectorComposer<Window> {
 			((TaskDate) task).setSelectedDate(dbSelectedDate.getValue());
 		}else if(task instanceof TaskWeekday) {
 			((TaskWeekday) task).setSelectedWeekdays(weekdays);
+			((TaskWeekday) task).setRolling(chRolling.isChecked());
 			
 		    Calendar c = Calendar.getInstance();
 		    c.set(Calendar.HOUR_OF_DAY, 0);
@@ -1042,8 +1034,7 @@ public class MainController extends SelectorComposer<Window> {
 	    txNotes.setValue("");
 	    taskFormatListModelList.addToSelection(TaskFormat.ONCE);
 	    tbTime.setValue(null);
-	    weekdays = new ArrayList<>();
-	    loadWeekdayButtons();
+	    clearWeekdayFields();
 	    
 	    editingTask = null;
 
@@ -1106,6 +1097,7 @@ public class MainController extends SelectorComposer<Window> {
         	clearDateFields();
 		}else if(selected == TaskFormat.WEEKDAY) {
         	onSelectWeekdayOnTaskFormat();
+			clearWeekdayFields();
 		}else {
 			onSelectDefaultOnTaskFormat();
 		}
@@ -1137,6 +1129,12 @@ public class MainController extends SelectorComposer<Window> {
     	layoutForDate.setVisible(false);
     	layoutForFrequency.setVisible(true);
 		layoutForWeekday.setVisible(false);
+	}
+
+	private void clearWeekdayFields() {
+		weekdays = new ArrayList<>();
+		loadWeekdayButtons();
+		chRolling.setChecked(true);
 	}
 	
 	private void clearFrequencyFields() {

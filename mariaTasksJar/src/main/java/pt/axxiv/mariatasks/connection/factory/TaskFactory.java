@@ -82,6 +82,7 @@ public class TaskFactory {
 			t = new TaskWeekday(oldTaskWeekday.getTitle(), oldTaskWeekday.getNotes(), 
                     oldTaskWeekday.getSection(), oldTask.getOwnerId(), 
                     oldTask.getTimeOfTheDay());
+			((TaskWeekday)t).setRolling(oldTaskWeekday.isRolling());
 			((TaskWeekday)t).setSelectedWeekdays(oldTaskWeekday.getSelectedWeekdays());
 			t.setParent(oldTaskWeekday.getId());
 			
@@ -93,6 +94,10 @@ public class TaskFactory {
 			
 			// Find the next selected weekday, skipping today
 			int daysToAdd = oldTaskWeekday.findNextSelectedWeekday(currentDayOfWeek, true);
+
+			if(daysToAdd<0){
+				return null;
+			}
 			
 			c.add(Calendar.DATE, daysToAdd);
 			c.set(Calendar.HOUR_OF_DAY, 0);

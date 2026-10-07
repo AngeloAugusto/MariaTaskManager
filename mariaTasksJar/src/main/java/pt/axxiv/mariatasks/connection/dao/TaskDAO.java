@@ -76,6 +76,8 @@ public class TaskDAO {
 	    	costum.setWeekday(doc.getString(TaskFields.WEEKDAY));
 	    	if(doc.getBoolean(TaskFields.DONE) != null)
 	    		costum.setDone(doc.getBoolean(TaskFields.DONE));
+	    	if(doc.getBoolean(TaskFields.ROLLING) != null)
+	    		costum.setRolling(doc.getBoolean(TaskFields.ROLLING));
         }
 	    
 	    return task;
@@ -103,6 +105,7 @@ public class TaskDAO {
         	doc.append(TaskFields.SELECTED_WEEK_DAYS, costum.getSelectedWeekdays());
         	doc.append(TaskFields.WEEKDAY, costum.getWeekday());
         	doc.append(TaskFields.DONE, costum.isDone());
+        	doc.append(TaskFields.ROLLING, costum.isRolling());
         }
         
 	    if(task.getId() == null) {
@@ -396,6 +399,7 @@ public class TaskDAO {
 	            updateDoc.append(TaskFields.WEEKDAY, dateWeekday.getWeekday());
 	        }
             updateDoc.append(TaskFields.DONE, dateWeekday.isDone());
+            updateDoc.append(TaskFields.ROLLING, dateWeekday.isRolling());
 	        
 	    }
 	    

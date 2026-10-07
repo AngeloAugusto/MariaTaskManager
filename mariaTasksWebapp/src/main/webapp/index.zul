@@ -77,6 +77,7 @@
 				        <button id="btSat" label="SAT" sclass="add-btn" style="font-size:9px;"/>
 				        <button id="btSun" label="SUN" sclass="add-btn" style="font-size:9px;"/>
 				    </div>
+					<checkbox id="chRolling" mold="switch" label="Repeat weekly" sclass="switch-class"/>
 				</vlayout>
 			    	
 			    <datebox id="dbStartDate" visible="false" tooltiptext="Start date"/>

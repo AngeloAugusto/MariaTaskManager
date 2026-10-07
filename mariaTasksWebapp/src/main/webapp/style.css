@@ -466,3 +466,131 @@
     padding-left: 25px;
     color: gray;
 }
+
+
+.switch-class.z-checkbox-switch {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	color: #fff;
+	font-size: 14px;
+	cursor: pointer;
+	user-select: none;
+}
+
+.switch-class.z-checkbox-switch > .z-checkbox-mold {
+	position: relative;
+	display: inline-block;
+	width: 40px;
+	height: 22px;
+	background: #1e1e1e;
+	border: 1px solid #555;
+	border-radius: 11px;
+	box-sizing: border-box;
+	cursor: pointer;
+	transition: background 0.3s ease, border-color 0.3s ease;
+	margin: 0;
+}
+
+.switch-class.z-checkbox-switch > .z-checkbox-mold::before {
+	content: "";
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 16px;
+	height: 16px;
+	background: #777;
+	border-radius: 50%;
+	transition: transform 0.3s ease, top 0.3s ease, left 0.3s ease,
+	background 0.3s ease;
+}
+
+.switch-class.z-checkbox-switch {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 10px;
+	color: #fff;
+	font-size: 14px;
+	cursor: pointer;
+	user-select: none;
+}
+
+.switch-class.z-checkbox-switch > .z-checkbox-mold {
+	position: relative;
+	display: inline-block;
+	width: 40px;
+	height: 22px;
+	background: #1e1e1e;
+	border: 1px solid #555;
+	border-radius: 11px;
+	box-sizing: border-box;
+	cursor: pointer;
+	transition: background 0.3s ease, border-color 0.3s ease;
+	margin: 0;
+}
+
+.switch-class.z-checkbox-switch > .z-checkbox-mold::before {
+	content: "";
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 16px;
+	height: 16px;
+	background: #777;
+	border-radius: 50%;
+	transition: transform 0.3s ease, top 0.3s ease, left 0.3s ease,
+	background 0.3s ease;
+}
+
+.switch-class.z-checkbox-switch:hover > .z-checkbox-mold {
+	border-color: #aaa;
+}
+.switch-class.z-checkbox-switch:hover > .z-checkbox-mold::before {
+	background: #aaa;
+}
+
+.switch-class.z-checkbox-switch > .z-checkbox-mold:focus,
+.switch-class.z-checkbox-switch > .z-checkbox-mold:focus-visible,
+.switch-class.z-checkbox-switch > .z-checkbox-mold:active {
+	outline: none !important;
+	box-shadow: none !important;
+	border-color: #A8A8A8 !important;
+}
+
+.switch-class.z-checkbox-switch > input[type="checkbox"]:focus,
+.switch-class.z-checkbox-switch > input[type="checkbox"]:focus-visible {
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+.switch-class.z-checkbox-switch:focus,
+.switch-class.z-checkbox-switch:focus-within,
+.switch-class.z-checkbox-switch:focus-visible {
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+.switch-class.z-checkbox-switch > .z-checkbox-content:focus {
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+.switch-class.z-checkbox-switch-on > .z-checkbox-mold {
+	background: #d3d3d3;
+	border-color: #d3d3d3;
+}
+
+.switch-class.z-checkbox-switch-on > .z-checkbox-mold::before {
+	background: #242526;
+	top: 2px;
+	left: 2px;
+	transform: translateX(18px);
+}
+
+.switch-class.z-checkbox-switch > .z-checkbox-content {
+	color: #fff;
+	font-size: 14px;
+	cursor: pointer;
+	margin: 0;
+}
