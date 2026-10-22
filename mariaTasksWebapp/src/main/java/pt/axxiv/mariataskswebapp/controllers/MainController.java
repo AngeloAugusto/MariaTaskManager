@@ -2,10 +2,7 @@ package pt.axxiv.mariataskswebapp.controllers;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +37,10 @@ import pt.axxiv.mariatasks.connection.factory.TaskFactory;
 import pt.axxiv.mariatasks.connection.labels.SubTaskFields;
 import pt.axxiv.mariatasks.connection.labels.TaskFields;
 import pt.axxiv.mariatasks.data.*;
+import pt.axxiv.mariataskswebapp.helpers.SubTaskHelper;
+import pt.axxiv.mariataskswebapp.helpers.TaskHelper;
+import pt.axxiv.mariataskswebapp.util.NoteUtil;
+import pt.axxiv.mariataskswebapp.util.TimeUtil;
 import pt.axxiv.mariataskswebapp.auth.AuthUtil;
 
 public class MainController extends SelectorComposer<Window> {
@@ -401,21 +402,7 @@ public class MainController extends SelectorComposer<Window> {
 		if(inHistoric)
 			closeHistoric();
 		
-		if(t.getCloseDate() != null) {
-			t.setCloseDate(null);
-			new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, null);
-			Task hasNewRollingTask = new TaskDAO().findByParent(t.getId());
-			if(hasNewRollingTask != null) {
-				new TaskDAO().delete(hasNewRollingTask.getId());
-			}
-		}else {
-			t.setClosed();
-	        new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, t.getCloseDate());
-	        Task task = TaskFactory.createRollingTask(t);
-	        if(task != null) {
-		    	new TaskDAO().insert(task);
-	        }
-		}
+		TaskHelper.toggleTaskCloseDate(t);
         
         updateTaskMap();
 	}
@@ -439,7 +426,7 @@ public class MainController extends SelectorComposer<Window> {
     	}
     	
         txTitle.setValue(editingTask.getTitle());
-        txNotes.setValue(convertToText(editingTask.getNotes()));
+        txNotes.setValue(NoteUtil.convertToText(editingTask.getNotes()));
         
         dbStartDate.setValue(editingTask.getStartDate());
 
@@ -447,7 +434,7 @@ public class MainController extends SelectorComposer<Window> {
 		generateSubTaskList();
         
         if(editingTask.getTimeOfTheDay()!=null)
-        	tbTime.setValue(localTimeToDate(editingTask.getTimeOfTheDay()));
+        	tbTime.setValue(TimeUtil.localTimeToDate(editingTask.getTimeOfTheDay()));
        
         if(editingTask instanceof TaskOnce) {
         	taskFormatListModelList.addToSelection(TaskFormat.ONCE);
@@ -646,12 +633,7 @@ public class MainController extends SelectorComposer<Window> {
 		if(inHistoric)
 			closeHistoric();
 
-		if(t.getCloseDate() != null) {
-			t.setCloseDate(null);
-		}else {
-			t.setClosed();
-		}
-		new SubTaskDAO().updateValue(t.getId(), SubTaskFields.CLOSE_DATE, t.getCloseDate());
+		SubTaskHelper.toggleSubTaskCloseDate(t);
 
 		updateTaskMap();
 	}
@@ -665,35 +647,8 @@ public class MainController extends SelectorComposer<Window> {
 		
 		if(inHistoric)
 			closeHistoric();
-		
-		
-		if(t.getCloseDate() != null) {
-			t.setCloseDate(null);
-			new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, null);
-			
-			if(t instanceof TaskWeekday) {
-				((TaskWeekday) t).setDone(false);
-				new TaskDAO().updateValue(t.getId(), TaskFields.DONE, false);
-			}
-			
-			Task hasNewRollingTask = new TaskDAO().findByParent(t.getId());
-			if(hasNewRollingTask != null) {
-				new TaskDAO().delete(hasNewRollingTask.getId());
-			}
-		}else {
-			t.setClosed();
-	        new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, t.getCloseDate());
-	        
-	        if(t instanceof TaskWeekday) {
-				((TaskWeekday) t).setDone(false);
-				new TaskDAO().updateValue(t.getId(), TaskFields.DONE, false);
-			}
-	        
-	        Task task = TaskFactory.createRollingTask(t);
-	        if(task != null) {
-		    	new TaskDAO().insert(task);
-	        }
-		}
+
+		TaskHelper.toggleTaskCloseDateWithDone(t, false);
         
         updateTaskMap();
 	}
@@ -708,36 +663,8 @@ public class MainController extends SelectorComposer<Window> {
 		
 		if(inHistoric)
 			closeHistoric();
-		
-		
-		if(t.getCloseDate() != null) {
-			t.setCloseDate(null);
-			new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, null);
-			
-			if(t instanceof TaskWeekday) {
-				((TaskWeekday) t).setDone(true);
-				new TaskDAO().updateValue(t.getId(), TaskFields.DONE, true);
-			}
-			
-			Task hasNewRollingTask = new TaskDAO().findByParent(t.getId());
-			if(hasNewRollingTask != null) {
-				new TaskDAO().delete(hasNewRollingTask.getId());
-			}
-		}else {
-			t.setClosed();
-	        new TaskDAO().updateValue(t.getId(), TaskFields.CLOSE_DATE, t.getCloseDate());
-	        
-	        if(t instanceof TaskWeekday) {
-				((TaskWeekday) t).setDone(true);
-				new TaskDAO().updateValue(t.getId(), TaskFields.DONE, true);
-			}
-	        
-	        Task task = TaskFactory.createRollingTask(t);
 
-	        if(task != null) {
-		    	new TaskDAO().insert(task);
-	        }
-		}
+		TaskHelper.toggleTaskCloseDateWithDone(t, true);
         
         updateTaskMap();
 		
@@ -837,138 +764,12 @@ public class MainController extends SelectorComposer<Window> {
 	    generateTaskList(tasksMap.get(selectedSection));
 	}
 	
-	public String convertToText(String html) {
-	    if (html == null || html.isEmpty()) return "";
 
-	    html = html.replace("\r", "");
-
-	    if (!html.contains("<")) {
-	        return html;
-	    }
-
-	    StringBuilder sb = new StringBuilder();
-	    int i = 0;
-
-	    while (i < html.length()) {
-
-	        if (html.startsWith("<br>", i)) {
-	            int brCount = 0;
-
-	            while (html.startsWith("<br>", i)) {
-	                brCount++;
-	                i += 4;
-	            }
-
-	            for (int j = 0; j < brCount; j++) {
-	                sb.append("\n");
-	            }
-
-	            continue;
-	        }
-
-	        if (html.startsWith("<li>", i)) {
-	            i += 4;
-	            int end = html.indexOf("</li>", i);
-	            if (end == -1) break;
-
-	            String item = html.substring(i, end).trim();
-	            sb.append("* ")
-	              .append(stripTags(item))
-	              .append("\n");
-
-	            i = end + 5;
-	            continue;
-	        }
-
-	        if (html.startsWith("<p>", i)) {
-	            i += 3;
-	            int end = html.indexOf("</p>", i);
-	            if (end == -1) break;
-
-	            String text = html.substring(i, end).trim();
-	            sb.append(stripTags(text)).append("\n");
-
-	            i = end + 4;
-	            continue;
-	        }
-
-	        i++;
-	    }
-
-	    return sb.toString().trim();
-	}
-	
-	private String stripTags(String input) {
-	    return input.replaceAll("<[^>]*>", "").trim();
-	}
-	
-	public String convertToHtml(String input) {
-	    if (input == null || input.isEmpty()) return "";
-
-	    StringBuilder sb = new StringBuilder();
-	    boolean inList = false;
-
-	    int blankCount = 0;
-
-	    for (String rawLine : input.split("\\n")) {
-	        String line = rawLine.trim();
-
-	        if (line.isEmpty()) {
-	            blankCount++;
-
-	            if (inList) {
-	                sb.append("</ul>");
-	                inList = false;
-	            }
-
-	            continue;
-	        }
-
-	        if (blankCount > 0) {
-	            for (int i = 0; i < blankCount; i++) {
-	                sb.append("<br>");
-	            }
-	            blankCount = 0;
-	        }
-
-	        if (line.startsWith("* ")) {
-	            if (!inList) {
-	                sb.append("<ul>");
-	                inList = true;
-	            }
-
-	            sb.append("<li>")
-	              .append(line.substring(2).trim())
-	              .append("</li>");
-	        } else {
-	            if (inList) {
-	                sb.append("</ul>");
-	                inList = false;
-	            }
-
-	            sb.append("<p>")
-	              .append(line)
-	              .append("</p>");
-	        }
-	    }
-
-	    // close list if still open
-	    if (inList) {
-	        sb.append("</ul>");
-	    }
-
-	    // trailing blank lines
-	    for (int i = 0; i < blankCount; i++) {
-	        sb.append("<br>");
-	    }
-
-	    return sb.toString();
-	}
 
 	@Listen("onClick = #btSaveNewTask")
 	public void onClickbtSaveNewTask(Event e) {
 		String title = txTitle.getValue();
-		String notes = convertToHtml(txNotes.getValue());
+		String notes = NoteUtil.convertToHtml(txNotes.getValue());
 		
 		TaskFormat selectedFormat = (TaskFormat) cbFormat.getSelectedItem().getValue();
 		
@@ -1440,18 +1241,6 @@ public class MainController extends SelectorComposer<Window> {
 			sections.add(section);
 		}
 	}
-	
-	public static Date localTimeToDate(LocalTime localTime) {
-        // Combine with today's date
-        LocalDate today = LocalDate.now();
-        LocalDateTime localDateTime = LocalDateTime.of(today, localTime);
-
-        // Convert to ZonedDateTime using system default zone
-        ZonedDateTime zonedDateTime = localDateTime.atZone(ZoneId.systemDefault());
-
-        // Convert to Instant, then to Date
-        return Date.from(zonedDateTime.toInstant());
-    }
 
 	@Listen("onClick = #btAddSubTask")
 	public void onClickbtAddSubTask(Event e) {
