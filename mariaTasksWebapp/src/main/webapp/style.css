@@ -19,11 +19,17 @@
 	box-sizing: border-box;
 }
 
+.main-container > .z-div:first-child,
+.main-container > include,
+.main-container > .z-include {
+	height: 100%;
+	display: flex;
+}
+
 .sidebar {
 	position: relative;
 	top: 0;
 	left: 0;
-	height: 100%;
 	width: 100px; /* collapsed default */
 	min-width: 80px;
 	max-width: 300px; /* expanded max */

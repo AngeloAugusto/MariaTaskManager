@@ -4,6 +4,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.bson.types.ObjectId;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Sessions;
 
@@ -56,5 +57,17 @@ public final class AuthUtil {
 		Sessions.getCurrent().removeAttribute("currentUserId");
 		Sessions.getCurrent().removeAttribute("currentTitle");
 		Sessions.getCurrent().invalidate();
+	}
+
+	public static User getCurrentUser() {
+		User cached = (User) Sessions.getCurrent().getAttribute("currentUser");
+		if (cached != null) return cached;
+
+		ObjectId id = (ObjectId) Sessions.getCurrent().getAttribute("currentUserId");
+		if (id == null) return null;
+
+		User u = new UserDAO().findById(id);
+		Sessions.getCurrent().setAttribute("currentUser", u);
+		return u;
 	}
 }
