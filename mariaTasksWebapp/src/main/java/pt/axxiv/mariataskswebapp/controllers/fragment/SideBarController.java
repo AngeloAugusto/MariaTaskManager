@@ -143,6 +143,7 @@ public class SideBarController extends SelectorComposer<Div> {
 
             viewModel.getSelectedSection().setTitle(txSection.getValue());
             viewModel.getSelectedSection().setIcon(btIcon.getIconSclass());
+            viewModel.getSelectedSection().setType(type);
             new SectionDAO().update(viewModel.getSelectedSection());
 
             int index = viewModel.getUserSections().indexOf(section);
