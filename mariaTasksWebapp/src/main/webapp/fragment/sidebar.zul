@@ -1,0 +1,35 @@
+<zk>
+    <div id="sidebar" sclass="sidebar collapsed" apply="pt.axxiv.mariataskswebapp.controllers.fragment.SideBarController" height="100%">
+        <button id="btToggleMenu" sclass="menu-btn" iconSclass="z-icon-bars"/>
+        <vlayout id="menuItems" sclass="menu-items"></vlayout>
+        <button id="btAddSection" sclass="floating-btn" iconSclass="z-icon-plus"/>
+        <button id="btProfile" sclass="profile-btn" iconSclass="z-icon-user" popup="ppProfile, position=before_start" />
+
+        <popup id="ppAddSection" sclass="add-section" width="300px">
+            <hbox>
+                <button id="btIcon" iconSclass="z-icon-image" sclass="add-btn"/>
+                <textbox id="txSection" placeholder="Section Title"/>
+            </hbox>
+            <separator />
+            <popup id="ppIcon" sclass="add-section" width="370px" >
+                <div id="iconContainer" sclass="icon-grid"/>
+            </popup>
+            <combobox id="cbType" readonly="true"></combobox>
+            <separator />
+            <button id="btSaveNewSection" sclass="save-btn" iconSclass="z-icon-check"/>
+        </popup>
+
+        <popup id="ppConfirmDeletion" sclass="add-section" width="300px">
+            <label sclass="popupText" value="Are you sure you want to delete this section and all the tasks inside?" />
+            <separator/>
+            <hbox spacing="30px" pack="center" width="100%">
+                <button id="btNo" sclass="add-btn rotate" iconSclass="z-icon-plus"/>
+                <button id="btYes" sclass="save-btn" iconSclass="z-icon-check"/>
+            </hbox>
+        </popup>
+
+        <popup id="ppProfile" sclass="add-section">
+            <button id="btLogout" label="Logout" sclass="logout-btn" />
+        </popup>
+    </div>
+</zk>

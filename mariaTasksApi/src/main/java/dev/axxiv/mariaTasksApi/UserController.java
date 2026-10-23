@@ -22,6 +22,7 @@ import pt.axxiv.mariatasks.connection.dao.TaskDAO;
 import pt.axxiv.mariatasks.connection.dao.UserDAO;
 import pt.axxiv.mariatasks.crypt.CryptUtil;
 import pt.axxiv.mariatasks.data.Section;
+import pt.axxiv.mariatasks.data.SectionType;
 import pt.axxiv.mariatasks.data.Task;
 import pt.axxiv.mariatasks.data.User;
 
@@ -95,7 +96,7 @@ public class UserController {
 	        user.setBearerTokenExpiry(expiryDate);
 	        userDao.updateBearerToken(user.getId(), bearerToken, expiryDate);
 	        
-	        Section section = new Section("To Do", "z-icon-pencil-square-o", user.getId());
+	        Section section = new Section("To Do", "z-icon-pencil-square-o", user.getId(), SectionType.TASKS);
 	        sectionDao.insert(section);
 	        
 	        // Create response

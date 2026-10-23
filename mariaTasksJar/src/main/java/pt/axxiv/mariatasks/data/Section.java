@@ -9,14 +9,16 @@ public class Section implements Comparable<Section> {
 	private ObjectId id;
 	private String title;
 	private String icon;
+	private SectionType type;
 	private ObjectId ownerId;
 	
 	public Section(){}
-	
-	public Section(String title, String icon, ObjectId ownerId) {
+
+	public Section(String title, String icon, ObjectId ownerId, SectionType type) {
 		this.title=title;
 		this.icon=icon;
 		this.ownerId=ownerId;
+		this.type=type;
 	}
 
 	public ObjectId getId() {
@@ -52,6 +54,14 @@ public class Section implements Comparable<Section> {
 
 	public void setOwnerId(ObjectId ownerId) {
 		this.ownerId = ownerId;
+	}
+
+	public SectionType getType() {
+		return type;
+	}
+
+	public void setType(SectionType type) {
+		this.type = type;
 	}
 
 	@Override

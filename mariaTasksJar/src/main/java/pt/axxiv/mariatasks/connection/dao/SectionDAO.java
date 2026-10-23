@@ -9,11 +9,7 @@ import com.mongodb.client.MongoDatabase;
 
 import pt.axxiv.mariatasks.connection.MongoDBConnectionOffline;
 import pt.axxiv.mariatasks.connection.labels.SectionFields;
-import pt.axxiv.mariatasks.connection.labels.TaskFields;
-import pt.axxiv.mariatasks.data.Section;
-import pt.axxiv.mariatasks.data.Task;
-import pt.axxiv.mariatasks.data.TaskCustom;
-import pt.axxiv.mariatasks.data.TaskDate;
+import pt.axxiv.mariatasks.data.*;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.and;
@@ -35,14 +31,19 @@ public class SectionDAO {
 	    section.setTitle(doc.getString(SectionFields.TITLE));
 	    section.setIcon(doc.getString(SectionFields.ICON));
 	    section.setOwnerId(doc.getObjectId(SectionFields.OWNER));
+		Integer value = doc.getInteger(SectionFields.TYPE);
+		section.setType(value != null ? SectionType.fromValue(value) : SectionType.TASKS);
 	    
 	    return section;
 	}
 	
 	public Section insert(Section section) {
+		SectionType type = section.getType() != null ? section.getType() : SectionType.TASKS;
+
         Document doc = new Document(SectionFields.TITLE, section.getTitle())
         		.append(SectionFields.ICON, section.getIcon())
-        		.append(SectionFields.OWNER, section.getOwnerId());
+        		.append(SectionFields.OWNER, section.getOwnerId())
+				.append(SectionFields.TYPE,  type.getValue());
         
         collection.insertOne(doc);
         section.setId(doc.getObjectId(SectionFields.ID));
@@ -91,7 +92,7 @@ public class SectionDAO {
 	    }
 	    
 	    // Check if task exists
-	    Document existingDoc = collection.find(eq(TaskFields.ID, section.getId())).first();
+	    Document existingDoc = collection.find(eq(SectionFields.ID, section.getId())).first();
 	    if (existingDoc == null) {
 	        throw new IllegalArgumentException("Section not found with id: " + section.getId());
 	    }
@@ -106,6 +107,10 @@ public class SectionDAO {
 	    if (section.getIcon() != null) {
 	        updateDoc.append(SectionFields.ICON, section.getIcon());
 	    }
+
+		if (section.getType() != null) {
+			updateDoc.append(SectionFields.TYPE, section.getType().getValue());
+		}
 	    
 	    // Only update if there are fields to update
 	    if (!updateDoc.isEmpty()) {

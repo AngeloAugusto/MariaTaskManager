@@ -1,0 +1,1343 @@
+package pt.axxiv.mariataskswebapp.controllers;
+
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.TextStyle;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.bson.types.ObjectId;
+import org.zkoss.zhtml.Hr;
+import org.zkoss.zk.ui.Executions;
+import org.zkoss.zk.ui.Sessions;
+import org.zkoss.zk.ui.event.Event;
+import org.zkoss.zk.ui.event.Events;
+import org.zkoss.zk.ui.select.SelectorComposer;
+import org.zkoss.zk.ui.select.annotation.Listen;
+import org.zkoss.zk.ui.select.annotation.Wire;
+import org.zkoss.zk.ui.util.Clients;
+import org.zkoss.zul.*;
+
+import pt.axxiv.mariatasks.connection.dao.SectionDAO;
+import pt.axxiv.mariatasks.connection.dao.SubTaskDAO;
+import pt.axxiv.mariatasks.connection.dao.TaskDAO;
+import pt.axxiv.mariatasks.connection.dao.UserDAO;
+import pt.axxiv.mariatasks.connection.factory.TaskFactory;
+import pt.axxiv.mariatasks.connection.labels.SubTaskFields;
+import pt.axxiv.mariatasks.connection.labels.TaskFields;
+import pt.axxiv.mariatasks.data.*;
+import pt.axxiv.mariataskswebapp.helpers.SubTaskHelper;
+import pt.axxiv.mariataskswebapp.helpers.TaskHelper;
+import pt.axxiv.mariataskswebapp.util.NoteUtil;
+import pt.axxiv.mariataskswebapp.util.TimeUtil;
+import pt.axxiv.mariataskswebapp.auth.AuthUtil;
+
+public class MainController extends SelectorComposer<Window> {
+
+	private static final long serialVersionUID = 1L;
+	@Wire
+	private Vlayout taskList;
+	@Wire
+	private Div sidebar;
+	@Wire
+	private Button btCreateTask;
+	@Wire
+	private Button btCollapseToday;
+	@Wire
+	private Vlayout taskSection;
+	@Wire
+	private Vlayout todayTaskList;
+	@Wire
+	private Label lbSectionTitle;
+	@Wire
+	private Vlayout menuItems;
+	@Wire
+	private Vlayout addTaskForm;
+	@Wire
+	private Textbox txTitle;
+	@Wire
+	private Textbox txNotes;
+	@Wire
+	private Combobox cbFormat;
+	@Wire
+	private Combobox cbSection;
+	@Wire
+    private Vlayout layoutForFrequency;
+	@Wire
+    private Vlayout layoutForDate;
+	@Wire
+    private Vlayout layoutForWeekday;
+	@Wire
+	private Vlayout layoutSubTask;
+	@Wire
+	private Intbox ibPeriod;
+	@Wire
+	private Combobox cbFrequency;
+	@Wire
+	private Datebox dbSelectedDate;
+	@Wire
+	private Timebox tbTime;
+	@Wire
+	private Popup ppAddSection;
+	@Wire
+	private Popup ppConfirmDeletion;
+	@Wire
+	private Popup ppConfirmDeletionTask;
+	@Wire
+	private Popup ppConfirmDeletionSubTask;
+	@Wire
+	private Textbox txSection;
+	@Wire
+	private Textbox txSubTaskTitle;
+	@Wire
+	private Button btProfile;
+	@Wire
+	private Button btDeleteSection;
+	@Wire
+	private Button btDeleteTask;
+	@Wire
+    private Timer myTimer;
+	@Wire
+    private Div iconContainer;
+    @Wire
+    private Button btAddSection;
+    @Wire
+    private Button btIcon;
+    @Wire
+    private Button btMon;
+    @Wire
+    private Button btTue;
+    @Wire
+    private Button btWed;
+    @Wire
+    private Button btThu;
+    @Wire
+    private Button btFri;
+    @Wire
+    private Button btSat;
+    @Wire
+    private Button btSun;
+    @Wire
+	private Popup ppIcon;
+    @Wire
+	private Datebox dbStartDate;
+    @Wire
+    private Button btEditTitleSection;
+    @Wire
+    private Vlayout taskHistoryList;
+    @Wire
+    private Vlayout taskHistory;
+    @Wire
+    private Vlayout subtaskList;
+    @Wire
+    private Checkbox chRolling;
+
+    private Window window;
+
+	private List<Section> sections = new ArrayList<Section>();
+	private Map<Section, List<Task>> tasksMap = new HashMap<Section, List<Task>>();
+	private ListModelList<FrequencyTypes> frequencyFormatListModelList;
+	private ListModelList<TaskFormat> taskFormatListModelList ;
+	private List<Integer> weekdays = new ArrayList<Integer>();
+	private List<SubTask> subTasks = new ArrayList<>();
+
+	private boolean showSectionTitle = false;
+	private boolean inHistoric = false;
+	private boolean editSectionTitle = false;
+	private Section selectedSection;
+
+	private Task editingTask = null;
+	private SubTask editingSubTask = null;
+
+	private User currentUser;
+	
+	List<String> icons = Arrays.asList(
+		    "home", "search", "user", "cog", "cogs", "wrench", "trash-o",
+		    "edit", "pencil", "pencil-square-o", "save", "print",
+		    "bell", "bell-o", "envelope", "envelope-o", "calendar", "calendar-o",
+		    "clock-o", "heart", "star", "star-o", "bookmark", "bookmark-o",
+		    "tag", "tags", "book", "file", "files-o", "folder", "folder-open",
+		    "folder-o", "folder-open-o",
+		    "check", "times", "times-circle", "times-circle-o", "close", 
+		    "remove", "warning", "info", "question", "ban",
+		    "play", "pause", "stop", "video-camera", "camera", "camera-retro", "image",
+		    "shopping-cart", "shopping-bag", "shopping-basket", "credit-card",
+		    "money", "dollar", "euro", "gift", "barcode",
+		    "facebook-square", "twitter-square", "linkedin-square", "github-square",
+		    "google-plus-square", "instagram", "youtube-play",
+		    "briefcase", "building", "desktop", "file-text", "users",
+		    "heartbeat", "medkit", "bicycle", "apple", "paw",
+		    "graduation-cap", "calculator", "flask", "globe",
+		    "plane", "car", "train", "map-marker", "suitcase",
+		    "cutlery", "tv", "paint-brush", "trash",
+		    "bank", "pie-chart",
+		    "lightbulb-o", "magic", "rocket", "flag", "bullseye",
+		    "film", "music", "gamepad", "headphones", "ticket",
+		    "cloud", "database", "coffee", "bed", "leaf", "futbol-o", 
+		    "trophy", "fire", "phone", "comments"
+		);
+	
+	
+	@Override
+    public void doBeforeComposeChildren(Window comp) throws Exception {
+        super.doBeforeComposeChildren(comp);
+
+        // Check if logged in
+        checkIsLogedIn();
+    }
+	
+	private void checkIsLogedIn() {
+		if (!AuthUtil.isLoggedIn()) {
+            // Redirect to login page
+            Executions.sendRedirect("/login.zul");
+            return;
+        }
+	}
+	
+	@Override
+	public void doAfterCompose(Window comp) throws Exception {
+		super.doAfterCompose(comp);
+		window=comp;
+
+		currentUser = new UserDAO().findById((ObjectId) Sessions.getCurrent().getAttribute("currentUserId"));
+		
+		if(currentUser == null) {
+			return;
+		}
+
+		updateSections();
+		selectedSection = sections.get(0);
+		generateSectionList();
+		updateTaskMap();
+
+		window.getPage().setTitle("MariaTasks - "+selectedSection.getTitle());
+		
+		
+		taskFormatListModelList = new ListModelList<TaskFormat>(TaskFormat.values());
+		cbFormat.setModel(taskFormatListModelList);
+		
+		frequencyFormatListModelList = new ListModelList<FrequencyTypes>(FrequencyTypes.values());
+		frequencyFormatListModelList.addToSelection(FrequencyTypes.BY_DAY);
+		cbFrequency.setModel(frequencyFormatListModelList);
+		
+		taskFormatListModelList.addToSelection(TaskFormat.ONCE);
+		
+		createIconGrid();
+
+	}
+	
+	@Listen("onClick = #btIcon")
+	public void onClickBtIcon(Event e) {
+	    ppIcon.open(btIcon, "before_end");
+	}
+
+	private boolean generateTaskHistory() {
+		
+		List<Task> taskList = new ArrayList<>();
+		Task parent = new TaskDAO().findById(editingTask.getParent());
+		int count = 0;
+	    boolean hasMore = false;
+	    
+		while (parent != null && count<15) {
+		    taskList.add(parent);
+		    parent = new TaskDAO().findById(parent.getParent());
+		    count++;
+		}
+		
+	    if (parent != null) {
+	        hasMore = true;
+	    }
+		
+		if(taskList.size()<=0) {
+			return false;
+		}
+
+		while (taskHistoryList.getFirstChild() != null)
+			taskHistoryList.removeChild(taskHistoryList.getFirstChild());
+    	
+    	for (Task t : taskList) {
+			Div row = new Div();
+	        row.setSclass("line");
+	        
+	        Div textContainer = new Div();
+	        textContainer.setStyle("display: flex; flex-direction: column;");
+	        String closeDate = t.closedDateFormatted();
+	        if (t instanceof TaskWeekday) {
+	        	if(((TaskWeekday) t).isDone()) {
+	        		closeDate+=" (Done)";
+	        	}else {
+	        		closeDate+=" (Not Done)";
+	        	}
+	        }
+	        Label titleLabel = new Label(closeDate);
+	        titleLabel.setSclass("taskTitle");
+	        textContainer.appendChild(titleLabel);
+	        row.appendChild(textContainer);
+	        taskHistoryList.appendChild(row);
+		}
+    	
+        if (hasMore) {
+            Div row = new Div();
+            row.setSclass("line");
+            
+            Div textContainer = new Div();
+            textContainer.setStyle("display: flex; flex-direction: column;");
+            
+            Label moreLabel = new Label("and more...");
+            moreLabel.setSclass("taskTitle");
+            textContainer.appendChild(moreLabel);
+            row.appendChild(textContainer);
+            taskHistoryList.appendChild(row);
+        }
+    	
+    	
+		
+		return true;
+	}
+
+	@Listen("onOK = #txTitle")
+	public void onEnterPress(Event event) {
+		onClickbtSaveNewTask(null);
+	}
+
+	private void generateTodayTaskList(List<Task> tasks) {
+		while (todayTaskList.getFirstChild() != null)
+			todayTaskList.removeChild(todayTaskList.getFirstChild());
+	    
+	    if(tasks == null || tasks.size()<=0)
+	    	return;
+
+	    for (Task t : tasks) {
+	        Div row = new Div();
+	        row.setSclass("line");
+			row.setStyle("display: flex; align-items: center;");
+
+	        // Container for title + notes
+	        Div textContainer = new Div();
+			textContainer.setStyle("display: flex; flex-direction: column; flex: 1; min-width: 0;");
+	        textContainer.setTooltiptext(t.getStartDate().toString());
+
+	        // Title
+	        String title = t.getTitle();
+	        if(t.getTimeOfTheDay() != null) {
+	        	title+=" - "+t.timeFormated();
+	        }
+	        if(t instanceof TaskDate taskDate) {
+	        	title += " ("+taskDate.setSelectedDateString()+")";
+	        }
+	        if(t instanceof TaskWeekday taskWeekday) {
+	        	title += " - ("+taskWeekday.getWeekday()+")";
+	        }
+	        Label titleLabel = new Label(title);
+	        titleLabel.setSclass("taskTitle");
+	        textContainer.appendChild(titleLabel);
+
+	        // Notes
+	        if (t.getNotes() != null && !t.getNotes().isEmpty()) {
+	        	Div container = new Div();
+	        	container.setSclass("notes-container");
+	        	textContainer.appendChild(container);
+
+	        	Html notes = new Html();
+	        	notes.setContent(t.getNotes());
+	        	container.appendChild(notes);
+	        }
+	        
+	        row.addEventListener("onClick", e -> onClickOnTaskRow(t));
+	        row.appendChild(textContainer);
+
+			Div separator = new Div();
+			separator.setStyle("width: 1px; align-self: stretch; background: #777; margin-left: auto; margin-right: 20px; flex-shrink: 0;");
+			row.appendChild(separator);
+
+	        // Done button
+        	if(t instanceof TaskWeekday && t.getCloseDate()==null) {
+        		Div div = new Div();
+        		Button btYes = new Button(" ");
+        		btYes.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px; color: white;");
+        		btYes.addEventListener("onClick", e -> onClickYes(t));
+        		btYes.setIconSclass("z-icon-check");
+		        
+		        Button btNo = new Button(" ");
+		        btNo.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px; color: white;");
+		        btNo.addEventListener("onClick", e -> onClickNo(t));
+		        btNo.setIconSclass("z-icon-times");
+
+		        div.appendChild(btNo);
+		        div.appendChild(btYes);
+		        row.appendChild(div);
+        	}else {
+		        Button btDone = new Button(" ");
+	        	btDone.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px; color: white;");
+		        if(t.getCloseDate() != null) {
+		        	btDone.setIconSclass("z-icon-check");
+		        }
+		        btDone.addEventListener("onClick", e -> onClickDone(t));
+		        row.appendChild(btDone);
+        	}
+	        
+	        
+
+	        todayTaskList.appendChild(row);
+	    }
+	}
+	
+	private void onClickDone(Task t) {
+		if(editingTask != null) {
+    		closeNewTaskWindow();
+    		editingTask = null;
+    	}
+		
+		if(inHistoric)
+			closeHistoric();
+		
+		TaskHelper.toggleTaskCloseDate(t);
+        
+        updateTaskMap();
+	}
+	
+	private void onClickOnTaskRow(Task t) {
+		if(editingTask == null || editingTask != t) {
+        	editingTask = t;
+			subTasks = new ArrayList<>();
+    		openNewTaskWindow();
+
+        	btDeleteTask.setVisible(true);
+        	dbStartDate.setVisible(true);
+        	taskHistory.setVisible(generateTaskHistory());
+    	} else if(t == editingTask) {
+    		closeNewTaskWindow();
+    		editingTask = null;
+    		return;
+    	}else {
+    		System.out.println("NOW WHAT???");
+    		return;
+    	}
+    	
+        txTitle.setValue(editingTask.getTitle());
+        txNotes.setValue(NoteUtil.convertToText(editingTask.getNotes()));
+        
+        dbStartDate.setValue(editingTask.getStartDate());
+
+		subTasks = new SubTaskDAO().findByParent(editingTask.getId());
+		generateSubTaskList();
+        
+        if(editingTask.getTimeOfTheDay()!=null)
+        	tbTime.setValue(TimeUtil.localTimeToDate(editingTask.getTimeOfTheDay()));
+       
+        if(editingTask instanceof TaskOnce) {
+        	taskFormatListModelList.addToSelection(TaskFormat.ONCE);
+        	
+        	onSelectDefaultOnTaskFormat();
+        	
+        }else if(editingTask instanceof TaskDaily) {
+        	taskFormatListModelList.addToSelection(TaskFormat.EVERY_DAY);
+        	
+        	onSelectDefaultOnTaskFormat();
+        	
+        }else if(editingTask instanceof TaskCustom tCostum) {
+        	taskFormatListModelList.addToSelection(TaskFormat.FREQUENCY);
+        	ibPeriod.setValue(tCostum.getPeriod());
+        	frequencyFormatListModelList.addToSelection(tCostum.getFrequencyTypes());
+
+			onSelectFrequencyOnTaskFormat();
+			
+        } else if(editingTask instanceof TaskDate tDate) {
+        	taskFormatListModelList.addToSelection(TaskFormat.DATE);
+        	dbSelectedDate.setValue(tDate.getSelectedDate());
+        	
+        	onSelectDateOnTaskFormat();
+        } else if(editingTask instanceof TaskWeekday tWeekday) {
+        	taskFormatListModelList.addToSelection(TaskFormat.WEEKDAY);
+
+        	weekdays = tWeekday.getSelectedWeekdays();
+			chRolling.setChecked(tWeekday.isRolling());
+        	loadWeekdayButtons();
+        	
+        	onSelectWeekdayOnTaskFormat();
+        } else {
+        	System.out.println("WHAT FORMAT???");
+        }
+	}
+
+	private void generateTaskList(List<Task> tasks) {
+	    while (taskList.getFirstChild() != null)
+	        taskList.removeChild(taskList.getFirstChild());
+
+	    if(tasks.isEmpty() || tasks.size()<=0)
+	    	return;
+
+	    //tasks.stream().filter(t -> t.getSection().equals(selectedSection.getId())).collect(Collectors.toSet())
+        LocalDate today = LocalDate.now();
+
+	    boolean hasClosed = tasks.get(0).getCloseDate()!=null;
+	    boolean hasAfterToday = tasks.get(0).getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(today);
+	    for (Task t : tasks) {
+	    	if(t.getCloseDate()!= null && !hasClosed) {
+	    		hasClosed=true;
+	    		Hr hr = new Hr();
+	    		hr.setStyle("width: 90%; margin-top: 15px; margin-bottom: 15px;");
+		        taskList.appendChild(hr);
+	    	}
+	    	if(t.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(today) && !hasAfterToday) {
+	    		hasAfterToday=true;
+	    		Hr hr = new Hr();
+	    		hr.setStyle("width: 90%; margin-top: 15px; margin-bottom: 15px;");
+		        taskList.appendChild(hr);
+	    	}
+
+	        Div row = new Div();
+	        row.setSclass("line");
+
+	        // Container for title + notes
+	        Div textContainer = new Div();
+			textContainer.setStyle("display: flex; flex-direction: column; flex: 1; min-width: 0;");
+	        textContainer.setTooltiptext(t.getStartDate().toString());
+
+	        // Title
+	        String title = t.getTitle();
+	        if(t.getTimeOfTheDay() != null) {
+	        	title+=" - "+t.timeFormated();
+	        }
+	        if(t instanceof TaskDate taskDate) {
+	        	title += " ("+taskDate.setSelectedDateString()+")";
+	        }
+	        if(t instanceof TaskWeekday taskWeekday) {
+	        	title += " - ("+taskWeekday.getWeekday()+")";
+	        }
+	        if(t.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(today)) {
+	        	title += " | "+t.startDateFormatted();
+	        }
+	        Label titleLabel = new Label(title);
+	        titleLabel.setSclass("taskTitle");
+	        textContainer.appendChild(titleLabel);
+
+	        // Notes
+	        if (t.getNotes() != null && !t.getNotes().isEmpty()) {
+	        	Div container = new Div();
+	        	container.setSclass("notes-container");
+	        	textContainer.appendChild(container);
+
+	        	Html notes = new Html();
+	        	notes.setContent(t.getNotes());
+	        	container.appendChild(notes);
+	        }
+
+			List<SubTask> subTasks = new SubTaskDAO().findByParent(t.getId());
+			if(!subTasks.isEmpty()){
+				Div subtaskList = new Div();
+				subtaskList.setSclass("subtask-grid");
+				subtaskList.setStyle("display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; margin-left: 10px; margin-right: 10px; width: calc(100% - 20px); margin-top: 10px;");
+
+				for(SubTask subTask : subTasks){
+					Div rowSt = new Div();
+					rowSt.setSclass("line");
+					rowSt.setStyle("box-sizing: border-box; display: flex;");
+
+					// Container for title
+					Div textContainerSt = new Div();
+					textContainerSt.setStyle("display: flex; flex-direction: column; flex: 1; min-width: 0;");
+
+					// Title
+					String titleSt = subTask.getTitle();
+					Label titleLabelSt = new Label(titleSt);
+					titleLabelSt.setSclass("subTaskTitle");
+					textContainerSt.appendChild(titleLabelSt);
+					rowSt.appendChild(textContainerSt);
+
+					Div separator = new Div();
+					separator.setStyle("width: 1px; align-self: stretch; background: #777; margin-left: auto; margin-right: 10px; flex-shrink: 0;");
+					rowSt.appendChild(separator);
+
+					Button btSubDone = new Button(" ");
+					btSubDone.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px; margin-right: 10px; color: white; flex-shrink: 0;");
+					if (subTask.getCloseDate() != null) {
+						btSubDone.setIconSclass("z-icon-check");
+					}
+					btSubDone.setDisabled(t.getCloseDate() != null);
+					btSubDone.addEventListener("onClick", e -> onClickDoneSubTask(subTask));
+					rowSt.appendChild(btSubDone);
+
+
+					subtaskList.appendChild(rowSt);
+				}
+				textContainer.appendChild(subtaskList);
+			}
+
+	        if (inHistoric || t.getCloseDate()!= null) {
+	            Label closedAt = new Label("Task closed at "+t.closedDateFormatted());
+	            closedAt.setStyle("font-size: 12px; color: gray; margin-top: 2px;");
+	            textContainer.appendChild(closedAt);
+	        }
+
+	        if(!inHistoric && t.getCloseDate()== null) {
+		        row.addEventListener("onClick", e ->onClickOnTaskRow(t));
+	        }
+
+	        row.appendChild(textContainer);
+
+	        // Done button
+	        if(!inHistoric && !t.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(today)) {
+
+				Div separator = new Div();
+				separator.setStyle("width: 1px; align-self: stretch; background: #777; margin-left: auto; margin-right: 20px; flex-shrink: 0;");
+				row.appendChild(separator);
+
+	        	if(t instanceof TaskWeekday && t.getCloseDate()==null) {
+	        		Div div = new Div();
+	        		Button btYes = new Button(" ");
+	        		btYes.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px; color: white;");
+	        		btYes.addEventListener("onClick", e -> onClickYes(t));
+	        		btYes.setIconSclass("z-icon-check");
+
+			        Button btNo = new Button(" ");
+			        btNo.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px; color: white;");
+			        btNo.addEventListener("onClick", e -> onClickNo(t));
+			        btNo.setIconSclass("z-icon-times");
+
+			        div.appendChild(btNo);
+			        div.appendChild(btYes);
+			        row.appendChild(div);
+	        	}else {
+			        Button btDone = new Button(" ");
+		        	btDone.setStyle("margin-left:auto; background: #242526; border: 2px solid white; padding: 0px; height: 30px; width: 30px;margin-right: 20px; color: white;");
+			        if(t.getCloseDate() != null) {
+			        	btDone.setIconSclass("z-icon-check");
+			        }
+			        btDone.addEventListener("onClick", e -> onClickDone(t));
+			        row.appendChild(btDone);
+	        	}
+	        }
+
+	        taskList.appendChild(row);
+	    }
+	}
+
+	private void onClickDoneSubTask(SubTask t) {
+		if(editingTask != null) {
+			closeNewTaskWindow();
+			editingTask = null;
+		}
+
+		if(inHistoric)
+			closeHistoric();
+
+		SubTaskHelper.toggleSubTaskCloseDate(t);
+
+		updateTaskMap();
+	}
+	
+	private void onClickNo(Task t) {
+		
+		if(editingTask != null) {
+    		closeNewTaskWindow();
+    		editingTask = null;
+    	}
+		
+		if(inHistoric)
+			closeHistoric();
+
+		TaskHelper.toggleTaskCloseDateWithDone(t, false);
+        
+        updateTaskMap();
+	}
+
+	private void onClickYes(Task t) {
+
+		
+		if(editingTask != null) {
+    		closeNewTaskWindow();
+    		editingTask = null;
+    	}
+		
+		if(inHistoric)
+			closeHistoric();
+
+		TaskHelper.toggleTaskCloseDateWithDone(t, true);
+        
+        updateTaskMap();
+		
+	}
+
+	private void generateSectionList() {
+	    while (menuItems.getFirstChild() != null)
+	    	menuItems.removeChild(menuItems.getFirstChild());
+	    
+		lbSectionTitle.setValue(selectedSection.getTitle());
+	
+	    for(Section section : sections) {
+	    	Button bt = new Button();
+	    	bt.setSclass("menu-item collapsed" + (selectedSection.equals(section) ? " selected" : ""));
+	    	bt.setIconSclass(section.getIcon());
+	    	if(showSectionTitle) {
+		    	bt.setSclass("menu-item open" + (selectedSection.equals(section) ? " selected" : ""));
+	    		bt.setLabel(section.getTitle());
+	    	}
+	    	
+	    	bt.addEventListener("onClick", e ->{
+	            if(inHistoric) {
+		    		closeHistoric();
+	            }
+	    		selectedSection = section;
+	    		window.getPage().setTitle("MariaTasks - "+selectedSection.getTitle());
+	            generateSectionList();
+	            generateTaskList(tasksMap.get(selectedSection));
+	    	});
+		    menuItems.appendChild(bt);
+	    }
+	    
+	    if(showSectionTitle) {
+	    	btProfile.setIconSclass("z-icon-user");
+	    	btProfile.setSclass("profile-btn open");
+	    	btProfile.setLabel(currentUser.getTitle());
+	    }else {
+	    	btProfile.setIconSclass("z-icon-user");
+	    	btProfile.setSclass("profile-btn");
+	    	btProfile.setLabel(null);
+		}
+	    
+	}
+
+	@Listen("onClick = #btToggleMenu")
+	public void onClickbtToggleMenu(Event e) {
+		toggleSectionMenu();
+        generateSectionList();
+	}
+	
+	private void toggleSectionMenu() {
+		boolean collapsed = sidebar.getSclass().contains("collapsed");
+		if (collapsed) {
+			expandSectionMenu();
+	    } else {
+	    	collapseSectionMenu();
+	    }
+	}
+
+	private void collapseSectionMenu() {
+        // Collapse sidebar
+        sidebar.setSclass("sidebar collapsed");
+        showSectionTitle = false;
+	}
+
+	private void expandSectionMenu() {
+        // Expand sidebar
+        sidebar.setSclass("sidebar open");
+        showSectionTitle = true;
+	}
+
+	@Listen("onClick = #btCreateTask")
+	public void onClickbtCreateTask(Event e) {
+		clearNewTaskWindow();
+		toggleNewTaskWindow();
+	}
+	
+	private void toggleNewTaskWindow() {
+	    String sclass = addTaskForm.getSclass();
+	    if (sclass.contains("open")) {
+	    	closeNewTaskWindow();
+	    } else {
+	    	
+	    	if(inHistoric) {
+	    		closeHistoric();
+	    	    return;
+	    	}
+	    	
+	    	openNewTaskWindow();
+	    }
+	}
+	
+	private void closeHistoric() {
+		inHistoric = false;
+	    btCreateTask.setSclass("add-btn");
+		generateSectionList();
+	    generateTaskList(tasksMap.get(selectedSection));
+	}
+	
+
+
+	@Listen("onClick = #btSaveNewTask")
+	public void onClickbtSaveNewTask(Event e) {
+		String title = txTitle.getValue();
+		String notes = NoteUtil.convertToHtml(txNotes.getValue());
+		
+		TaskFormat selectedFormat = (TaskFormat) cbFormat.getSelectedItem().getValue();
+		
+		if(selectedFormat.equals(TaskFormat.WEEKDAY) && (weekdays==null || weekdays.isEmpty() || weekdays.size()<=0)) {
+			Clients.showNotification("No weekday was selected.", layoutForWeekday);
+			return;
+		}
+		
+		Task task = TaskFactory.createTask(selectedFormat, title, notes, selectedSection.getId(), currentUser.getId(), tbTime.getValueInLocalTime());
+		
+		if(editingTask != null) {
+			task.setId(editingTask.getId());
+			task.setStartDate(dbStartDate.getValue());
+			task.setSection(cbSection.getSelectedItem().getValue());
+			task.setParent(editingTask.getParent());
+			editingTask = null;
+		}
+		
+		if(task instanceof TaskCustom ) {
+			((TaskCustom) task).setPeriod(ibPeriod.getValue());
+			((TaskCustom) task).setFrequencyTypes(cbFrequency.getSelectedItem().getValue());
+		} else if(task instanceof TaskDate) {
+			((TaskDate) task).setSelectedDate(dbSelectedDate.getValue());
+		}else if(task instanceof TaskWeekday) {
+			((TaskWeekday) task).setSelectedWeekdays(weekdays);
+			((TaskWeekday) task).setRolling(chRolling.isChecked());
+			
+		    Calendar c = Calendar.getInstance();
+		    c.set(Calendar.HOUR_OF_DAY, 0);
+		    c.set(Calendar.MINUTE, 0);
+		    c.set(Calendar.SECOND, 0);
+		    c.set(Calendar.MILLISECOND, 0);
+		    
+		    int currentDayOfWeek = c.get(Calendar.DAY_OF_WEEK);
+		    int daysToAdd = ((TaskWeekday) task).findNextSelectedWeekday(currentDayOfWeek);
+		    c.add(Calendar.DATE, daysToAdd);
+		    task.setStartDate(c.getTime());
+		    
+		    LocalDate date = c.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			DayOfWeek dow = date.getDayOfWeek();
+			((TaskWeekday)task).setWeekday(dow.getDisplayName(TextStyle.SHORT, Locale.US));
+			
+		}
+		
+
+		new TaskDAO().insert(task);
+
+		if(!subTasks.isEmpty()){
+			for(SubTask subTask : subTasks){
+				subTask.setParentTask(task.getId());
+				new SubTaskDAO().insert(subTask);
+			}
+			subTasks = new ArrayList<>();
+		}
+		
+		updateTaskMap();
+		
+    	closeNewTaskWindow();
+	}
+	
+	private void clearNewTaskWindow() {
+		txTitle.setValue("");
+	    txNotes.setValue("");
+	    taskFormatListModelList.addToSelection(TaskFormat.ONCE);
+	    tbTime.setValue(null);
+	    clearWeekdayFields();
+	    
+	    editingTask = null;
+
+		onSelectDefaultOnTaskFormat();
+	    
+	    clearDateFields();
+	    clearFrequencyFields();
+
+		txSubTaskTitle.setValue("");
+		subTasks = new ArrayList<>();
+		generateSubTaskList();
+	}
+	
+	private void openNewTaskWindow() {
+        addTaskForm.setSclass("add-task-form open"); // slide in
+        taskSection.setSclass("task-section retracted");
+        btCreateTask.setSclass("add-btn rotate");
+        txTitle.setFocus(true);
+        
+        if(editingTask != null) {
+        	cbSection.setVisible(true);
+        	List<Section> tempSec = sections;
+        	Section taskSection = tempSec.stream().filter(e -> e.getId().equals(editingTask.getSection())).collect(Collectors.toList()).get(0);
+        	ListModelList<Section> sectionModelList = new ListModelList<Section>(tempSec);
+        	cbSection.setModel(sectionModelList);
+        	sectionModelList.addToSelection(taskSection);
+        	cbSection.setItemRenderer((item, data, index) -> {
+        		Section section = (Section) data;
+                item.setLabel(section.getTitle());
+                item.setValue(section.getId());
+            });
+        }else {
+        	cbSection.setVisible(false);
+        }
+	}
+	
+	private void closeNewTaskWindow() {
+		
+		clearNewTaskWindow();
+		
+	    // close with animation
+	    addTaskForm.setSclass("add-task-form");
+	    taskSection.setSclass("task-section");
+	    btCreateTask.setSclass("add-btn");
+
+    	btDeleteTask.setVisible(false);
+    	dbStartDate.setVisible(false);
+    	taskHistory.setVisible(false);
+	}
+	
+	@Listen("onSelect = #cbFormat")
+    public void onComboChange() {
+        TaskFormat selected = cbFormat.getSelectedItem().getValue();
+        
+		if(selected == TaskFormat.FREQUENCY) {
+			onSelectFrequencyOnTaskFormat();
+			clearFrequencyFields();
+        }else if(selected == TaskFormat.DATE) {
+        	onSelectDateOnTaskFormat();
+        	clearDateFields();
+		}else if(selected == TaskFormat.WEEKDAY) {
+        	onSelectWeekdayOnTaskFormat();
+			clearWeekdayFields();
+		}else {
+			onSelectDefaultOnTaskFormat();
+		}
+    }
+	
+	private void onSelectDefaultOnTaskFormat() {
+    	layoutForDate.setVisible(false);
+    	layoutForFrequency.setVisible(false);	
+		layoutForWeekday.setVisible(false);
+	}
+
+	private void onSelectDateOnTaskFormat() {
+    	layoutForDate.setVisible(true);
+    	layoutForFrequency.setVisible(false);
+		layoutForWeekday.setVisible(false);
+	}
+
+	private void onSelectWeekdayOnTaskFormat() {
+		layoutForWeekday.setVisible(true);
+		layoutForFrequency.setVisible(false);
+		layoutForDate.setVisible(false);
+	}
+	
+	private void clearDateFields() {
+		dbSelectedDate.setValue(new Date());
+	}
+	
+	private void onSelectFrequencyOnTaskFormat() {
+    	layoutForDate.setVisible(false);
+    	layoutForFrequency.setVisible(true);
+		layoutForWeekday.setVisible(false);
+	}
+
+	private void clearWeekdayFields() {
+		weekdays = new ArrayList<>();
+		loadWeekdayButtons();
+		chRolling.setChecked(true);
+	}
+	
+	private void clearFrequencyFields() {
+    	ibPeriod.setValue(null);
+    	frequencyFormatListModelList.addToSelection(FrequencyTypes.BY_DAY);
+	}
+
+	@Listen("onClick = #btClearTime")
+	public void onClickbtClearTime(Event e) {
+		tbTime.setValue(null);
+	}
+	
+	@Listen("onClick = #btAddSection")
+	public void onClickbtAddSection(Event e) {
+		editSectionTitle=false;
+		txSection.setValue("");
+		txSection.setFocus(true);
+		
+		ppAddSection.open(btAddSection, "before_start");
+	}
+	
+	@Listen("onOK = #txSection")
+	public void onEnterPresstxSection(Event event) {
+		onClickbtSaveNewSection(null);
+	}
+
+	@Listen("onClick = #btSaveNewSection")
+	public void onClickbtSaveNewSection(Event e) {
+		String title = txSection.getValue().trim();
+		
+		Section sectionToChec = new SectionDAO().findByTitle(title, currentUser.getId());
+		if(sectionToChec!=null && !sectionToChec.getId().equals(selectedSection.getId())) {
+			Clients.showNotification("Section already exists.", txSection);
+			txSection.setFocus(true);
+			return;
+		}
+		
+		if(title==null || title.isBlank() || title.isEmpty()) {
+			Clients.showNotification("Title cannot be empty", txSection);
+			txSection.setFocus(true);
+			return;
+		}
+		
+		Section section = selectedSection;
+		if(editSectionTitle) {
+			
+			selectedSection.setTitle(txSection.getValue());
+			selectedSection.setIcon(btIcon.getIconSclass());
+			new SectionDAO().update(selectedSection);
+			
+			int index = sections.indexOf(section);
+			sections.remove(index);
+			sections.add(index, selectedSection);
+			
+			window.getPage().setTitle("MariaTasks - "+selectedSection.getTitle());
+			
+			editSectionTitle=false;
+		}else {
+			section = new Section(title, btIcon.getIconSclass(), currentUser.getId());
+			section = new SectionDAO().insert(section);
+			
+			sections.add(section);
+			tasksMap.put(section, new ArrayList<Task>());
+		}
+
+	    txSection.setValue("");
+	    ppAddSection.close();
+	    
+		generateSectionList();
+	}
+
+	@Listen("onClick = #btLogout")
+	public void onClickbtLogout(Event e) {
+		AuthUtil.logout();
+        Executions.sendRedirect("/login.zul");
+	}
+
+	@Listen("onClick = #btHistoric")
+	public void onClickbtHistoric(Event e) {
+		
+        if(inHistoric) {
+    		closeHistoric();
+    		return;
+        }
+		
+		inHistoric = true;
+		lbSectionTitle.setValue("Historic");
+		generateTaskList(new TaskDAO().findAllClosed(currentUser.getId()));
+		btCreateTask.setSclass("add-btn rotate");
+	}
+
+	@Listen("onClick = #btEditTitleSection")
+	public void onClickbtEditTitleSection(Event e) {
+		ppAddSection.open(btEditTitleSection, "after_start");
+		editSectionTitle=true;
+		txSection.setValue(selectedSection.getTitle());
+		btIcon.setIconSclass(selectedSection.getIcon());
+	}
+	
+	@Listen("onClick = #btDeleteTask")
+	public void onClickbtDeleteTask(Event e) {
+		ppConfirmDeletionTask.open(btDeleteTask);
+	}
+	
+	@Listen("onClick = #btTaskYes")
+	public void onClickbtTaskYes(Event e) {
+		removeTaskFromMap(editingTask);
+		
+		new TaskDAO().delete(editingTask.getId());
+		
+        updateTaskMap();
+		
+		ppConfirmDeletionTask.close();
+		closeNewTaskWindow();
+		
+	}
+	
+	@Listen("onClick = #btTaskNo")
+	public void onClickbtTaskNo(Event e) {
+		ppConfirmDeletionTask.close();
+	}
+	
+	@Listen("onClick = #btDeleteSection")
+	public void onClickbtDeleteSection(Event e) {
+
+		if(sections.size()<=1) {
+			Clients.showNotification("Section can't be deleted.", btDeleteSection);
+			return;
+		}
+		
+		ppConfirmDeletion.open(btDeleteSection);
+	}
+
+	@Listen("onClick = #btYes")
+	public void onClickbtYes(Event e) {
+		
+		new TaskDAO().deleteFromSection(selectedSection.getId());
+		
+		new SectionDAO().delete(selectedSection.getId());
+		
+		sections.remove(selectedSection);
+		selectedSection = sections.get(0);
+		window.getPage().setTitle("MariaTasks - "+selectedSection.getTitle());
+        generateSectionList();
+        updateTaskMap();
+		
+		ppConfirmDeletion.close();
+		
+	}
+
+	@Listen("onClick = #btNo")
+	public void onClickbtNo(Event e) {
+		ppConfirmDeletion.close();
+	}
+
+	@Listen("onClick = #btMon")
+	public void onClickbtMon(Event e) {
+		toggleWeekDay(0);
+	}
+
+	@Listen("onClick = #btTue")
+	public void onClickbtTue(Event e) {
+		toggleWeekDay(1);
+	}
+
+	@Listen("onClick = #btWed")
+	public void onClickbtWed(Event e) {
+		toggleWeekDay(2);
+	}
+
+	@Listen("onClick = #btThu")
+	public void onClickbtThu(Event e) {
+		toggleWeekDay(3);
+	}
+
+	@Listen("onClick = #btFri")
+	public void onClickbtFri(Event e) {
+		toggleWeekDay(4);
+	}
+
+	@Listen("onClick = #btSat")
+	public void onClickbtSat(Event e) {
+		toggleWeekDay(5);
+	}
+
+	@Listen("onClick = #btSun")
+	public void onClickbtSun(Event e) {
+		toggleWeekDay(6);
+	}
+	
+	private void toggleWeekDay(int weekday) {
+		if (weekdays.contains(weekday)) {
+		    weekdays.remove(Integer.valueOf(weekday));
+		} else {
+		    weekdays.add(weekday);
+		}
+		loadWeekdayButtons();
+	}
+	
+	private void loadWeekdayButtons() {
+		btMon.setSclass("add-btn" + (weekdays.contains(0) ? " selected" : ""));
+		btTue.setSclass("add-btn" + (weekdays.contains(1) ? " selected" : ""));
+		btWed.setSclass("add-btn" + (weekdays.contains(2) ? " selected" : ""));
+		btThu.setSclass("add-btn" + (weekdays.contains(3) ? " selected" : ""));
+		btFri.setSclass("add-btn" + (weekdays.contains(4) ? " selected" : ""));
+		btSat.setSclass("add-btn" + (weekdays.contains(5) ? " selected" : ""));
+		btSun.setSclass("add-btn" + (weekdays.contains(6) ? " selected" : ""));
+	}
+	
+	
+//	@Listen("onTimer = #myTimer")
+//    public void runTask(Event event) {
+//
+//        // Check if logged in
+//        checkIsLogedIn();
+//        
+//		updateSections();
+//		updateTaskMap();
+//	}
+	
+	private void createIconGrid() {
+
+		for (String icon : icons) {
+		    Button btn = new Button();
+		    btn.setSclass("add-btn");
+		    btn.setIconSclass("z-icon-" + icon);
+
+		    btn.addEventListener(Events.ON_CLICK, e -> {
+		        btIcon.setIconSclass("z-icon-" + icon);
+		        ppIcon.close();
+		    });
+
+		    iconContainer.appendChild(btn);
+		}
+    }
+	
+	private void addTaskToMap(Task t) {
+		List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get());
+		ts.add(t);
+		tasksMap.put(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get(), ts);
+	}
+	
+	private void removeTaskFromMap(Task t) {
+		List<Task> ts = tasksMap.get(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get());
+		ts.remove(t);
+		tasksMap.put(sections.stream().filter(s -> s.getId().equals(t.getSection())).findFirst().get(), ts);
+	}
+	
+	private void updateTaskMap() {
+	    tasksMap = new HashMap<Section, List<Task>>();
+	    for(Section s : sections) {
+	        tasksMap.put(s, new ArrayList<Task>());
+	    }
+	    
+	    Set<Task> allTasks = new HashSet<>();
+	    allTasks.addAll(new TaskDAO().findAllOpenByUser(currentUser.getId()));
+	    allTasks.addAll(new TaskDAO().findAllClosedTodayByUser(currentUser.getId()));
+	    
+	    List<Task> sortedTasks = new ArrayList<>(allTasks);
+
+		sortedTasks.sort(
+		    Comparator
+		        .comparing((Task t) -> t.getCloseDate() != null)
+		        .thenComparing(Task::getCloseDate, Comparator.nullsFirst(Comparator.naturalOrder()))
+		        .thenComparing(Task::getStartDate, Comparator.nullsLast(Comparator.naturalOrder()))
+		        .thenComparing(Task::getTitle, Comparator.nullsLast(Comparator.naturalOrder()))
+		        .thenComparing(Task::getId)
+		);
+		    
+	    for(Task t : sortedTasks) {
+	        addTaskToMap(t);
+	    }
+
+	    generateTaskList(tasksMap.get(selectedSection));
+		generateTodayTaskList(new TaskDAO().findAllOpenTodayByUser(currentUser.getId()));
+	}
+	
+	@Listen("onTabFocus = #tasksTabWindow")
+	public void onTabFocus() {
+	    checkIsLogedIn();
+	    updateSections();
+		generateSectionList();
+	    updateTaskMap();
+	}
+	
+	@Listen("onClick = #btCollapseToday")
+	public void onClickbtCollapseToday(Event e) {
+		todayTaskList.setVisible(!todayTaskList.isVisible());
+		boolean isDown = btCollapseToday.getIconSclass().contains("down");
+		if (isDown) {
+			btCollapseToday.setIconSclass("z-icon-chevron-up");
+	    } else {
+			btCollapseToday.setIconSclass("z-icon-chevron-down");
+	    }
+	}
+	
+	private void updateSections() {
+		sections = new SectionDAO().findAllByUser(currentUser.getId());
+		
+		if(sections == null || sections.size()<=0) {
+			Section section = new Section("To Do", "z-icon-pencil-square-o", currentUser.getId());
+			section = new SectionDAO().insert(section);
+			sections.add(section);
+		}
+	}
+
+	@Listen("onClick = #btAddSubTask")
+	public void onClickbtAddSubTask(Event e) {
+
+		if(txSubTaskTitle.getText().isEmpty()){
+			Clients.showNotification("No sub task title was inserted.", "warning", txSubTaskTitle, "before_start", 3000);
+			return;
+		}
+
+		SubTask subTask = editingSubTask != null ? editingSubTask : new SubTask();
+		subTask.setTitle(txSubTaskTitle.getValue());
+
+		if(editingSubTask == null){
+			subTasks.addFirst(subTask);
+		}
+		editingSubTask = null;
+
+		txSubTaskTitle.setValue("");
+
+		generateSubTaskList();
+	}
+
+	public void generateSubTaskList(){
+		while (subtaskList.getFirstChild() != null)
+			subtaskList.removeChild(subtaskList.getFirstChild());
+
+		if(subTasks == null || subTasks.isEmpty())
+			return;
+
+		for(SubTask subTask : subTasks){
+			Div row = new Div();
+			row.setSclass("line");
+
+			// Container for title + notes
+			Div textContainer = new Div();
+			textContainer.setStyle("display: flex; flex-direction: column;");
+
+			// Title
+			String title = subTask.getTitle();
+			Label titleLabel = new Label(title);
+			titleLabel.setSclass("subTaskTitle");
+			textContainer.appendChild(titleLabel);
+			row.appendChild(textContainer);
+
+			Button btDelete = new Button(" ");
+			btDelete.setStyle(
+					"margin-left: auto; background: #242526; border: 2px solid white; " +
+							"padding: 0; height: 30px; width: 30px; margin-right: 10px; " +
+							"color: white; flex-shrink: 0;"
+			);
+			btDelete.setIconSclass("z-icon-trash");
+			btDelete.addEventListener("onClick", e -> {
+				e.stopPropagation();
+				onClickDeleteSubTask(btDelete, subTask);
+			});
+			row.appendChild(btDelete);
+
+			// Row click
+			row.addEventListener("onClick", e -> onClickOnSubTaskRow(subTask));
+
+			subtaskList.appendChild(row);
+		}
+	}
+
+	private void onClickOnSubTaskRow(SubTask subTask) {
+		editingSubTask = subTask;
+		txSubTaskTitle.setText(subTask.getTitle());
+	}
+
+	private void onClickDeleteSubTask(Button button, SubTask subTask) {
+		editingSubTask = subTask;
+		ppConfirmDeletionSubTask.open(button);
+	}
+
+	@Listen("onClick = #btSubTaskNo")
+	public void onClickbtSubTaskNo(Event e) {
+		ppConfirmDeletionSubTask.close();
+	}
+
+	@Listen("onClick = #btSubTaskYes")
+	public void onClickbtSubTaskYes(Event e) {
+
+		if(editingSubTask.getId()!= null) {
+			new SubTaskDAO().delete(editingSubTask.getId());
+		}
+
+		subTasks.remove(editingSubTask);
+		editingSubTask = null;
+		generateSubTaskList();
+
+		ppConfirmDeletionSubTask.close();
+	}
+
+	@Listen("onOK = #txSubTaskTitle")
+	public void onEnterPresstxSubTaskTitle(Event event) {
+		onClickbtAddSubTask(null);
+	}
+
+}
+
