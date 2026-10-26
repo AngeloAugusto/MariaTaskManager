@@ -21,11 +21,11 @@
 			<vlayout id="center" sclass="task-section" vflex="1">
 				<include id="icTodayTaskList" src="fragment/todayTaskList.zul"/>
 				<separator></separator>
-				<include id="icMainContainer" src="fragment/mainContainer.zul"/>
+				<include id="icMainContainer" src="fragment/container/mainContainer.zul"/>
 			</vlayout>
 
 			<!-- Add Task Form (outside, right side) -->
-			<include id="icFormContainer" src="fragment/formContainer.zul"/>
+			<include id="icFormContainer" src="fragment/form/formContainer.zul"/>
 	
 		</div>
 <!--		<timer id="myTimer" delay="10000" repeats="true"/>-->

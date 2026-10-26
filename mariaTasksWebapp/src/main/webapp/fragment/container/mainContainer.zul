@@ -1,0 +1,6 @@
+<zk>
+    <vlayout id="mainContainer" sclass="task-section-border" vflex="1" apply="pt.axxiv.mariataskswebapp.controllers.fragment.MainContainerController">
+        <include id="icTaskContainer" src="fragment/container/taskContainer.zul" visible="false"/>
+        <include id="icBirthdayContainer" src="fragment/container/birthdayContainer.zul" visible="false"/>
+    </vlayout>
+</zk>

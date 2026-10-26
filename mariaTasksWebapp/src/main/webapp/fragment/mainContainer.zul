@@ -1,5 +1,0 @@
-<zk>
-    <vlayout id="mainContainer" sclass="task-section-border" vflex="1" apply="pt.axxiv.mariataskswebapp.controllers.fragment.MainContainerController">
-        <include id="icTaskList" src="fragment/taskList.zul"/>
-    </vlayout>
-</zk>

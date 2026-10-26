@@ -1,5 +1,0 @@
-<zk>
-    <vlayout id="formContainer" sclass="add-task-form" apply="pt.axxiv.mariataskswebapp.controllers.fragment.FormContainerController">
-        <include id="icFromTask" src="fragment/formTask.zul"/>
-    </vlayout>
-</zk>

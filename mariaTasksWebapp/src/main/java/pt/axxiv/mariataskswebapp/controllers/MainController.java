@@ -10,6 +10,7 @@ import org.zkoss.zk.ui.select.annotation.Wire;
 import org.zkoss.zul.*;
 import pt.axxiv.mariataskswebapp.AppViewModel;
 import pt.axxiv.mariataskswebapp.auth.AuthUtil;
+import pt.axxiv.mariataskswebapp.controllers.fragment.MainContainerController;
 import pt.axxiv.mariataskswebapp.controllers.fragment.SideBarController;
 
 public class MainController extends SelectorComposer<Window> {
@@ -76,7 +77,8 @@ public class MainController extends SelectorComposer<Window> {
 		EventQueue<Event> eq = EventQueues.lookup(SideBarController.UPDATE_SECTION, EventQueues.DESKTOP, true);
 		eq.publish(new Event("onRefresh", null, null));
 
-		viewModel.updateTaskMap();
+		EventQueue<Event> eqRedraw = EventQueues.lookup(MainContainerController.REDRAW_CONTAINER, EventQueues.DESKTOP, true);
+		eqRedraw.publish(new Event("onRefresh", null, null));
 	}
 
 }

@@ -6,12 +6,11 @@ import org.zkoss.zk.ui.event.EventQueues;
 import org.zkoss.zul.*;
 import pt.axxiv.mariatasks.connection.dao.SubTaskDAO;
 import pt.axxiv.mariatasks.connection.dao.TaskDAO;
-import pt.axxiv.mariatasks.data.SubTask;
-import pt.axxiv.mariatasks.data.Task;
-import pt.axxiv.mariatasks.data.TaskDate;
-import pt.axxiv.mariatasks.data.TaskWeekday;
+import pt.axxiv.mariatasks.data.*;
 import pt.axxiv.mariataskswebapp.AppViewModel;
+import pt.axxiv.mariataskswebapp.controllers.fragment.FormContainerController;
 import pt.axxiv.mariataskswebapp.controllers.fragment.FormTaskController;
+import pt.axxiv.mariataskswebapp.controllers.fragment.MainContainerController;
 import pt.axxiv.mariataskswebapp.helpers.SubTaskHelper;
 import pt.axxiv.mariataskswebapp.helpers.TaskHelper;
 import org.zkoss.zhtml.Hr;
@@ -133,7 +132,7 @@ public class TaskListRenderer {
             }
 
             if(t.getCloseDate()== null) {
-                row.addEventListener("onClick", e ->onClickOnTaskRow(t, viewModel));
+                row.addEventListener("onClick", e ->onClickOnRow(t, viewModel));
             }
 
             row.appendChild(textContainer);
@@ -175,21 +174,19 @@ public class TaskListRenderer {
         }
     }
 
-    public static void onClickOnTaskRow(Task t, AppViewModel viewModel) {
+    public static void onClickOnRow(Task t, AppViewModel viewModel) {
         if(viewModel.getEditingTask() == null || viewModel.getEditingTask() != t) {
             viewModel.setEditingTask(t);
 
-            EventQueue<Event> eq = EventQueues.lookup(FormTaskController.OPEN_FORM, EventQueues.DESKTOP, true);
-            eq.publish(new Event("onRefresh", null, null));
+            EventQueue<Event> eqOpen = EventQueues.lookup(FormContainerController.OPEN_VIEW, EventQueues.DESKTOP, true);
+            eqOpen.publish(new Event("onRefresh", null, null));
 
         } else if(t == viewModel.getEditingTask()) {
-            EventQueue<Event> eq = EventQueues.lookup(FormTaskController.CLOSE_FORM, EventQueues.DESKTOP, true);
+            EventQueue<Event> eq = EventQueues.lookup(FormContainerController.CLOSE_VIEW, EventQueues.DESKTOP, true);
             eq.publish(new Event("onRefresh", null, null));
             viewModel.setEditingTask(null);
-            return;
         }else {
             System.out.println("NOW WHAT???");
-            return;
         }
     }
 
@@ -205,7 +202,8 @@ public class TaskListRenderer {
 
         TaskHelper.toggleTaskCloseDateWithDone(t, true);
 
-        viewModel.updateTaskMap();
+        EventQueue<Event> eq = EventQueues.lookup(MainContainerController.REDRAW_CONTAINER, EventQueues.DESKTOP, true);
+        eq.publish(new Event("onRefresh", null, null));
 
     }
 
@@ -221,7 +219,8 @@ public class TaskListRenderer {
 
         TaskHelper.toggleTaskCloseDateWithDone(t, false);
 
-        viewModel.updateTaskMap();
+        EventQueue<Event> eq = EventQueues.lookup(MainContainerController.REDRAW_CONTAINER, EventQueues.DESKTOP, true);
+        eq.publish(new Event("onRefresh", null, null));
     }
 
     private static void onClickDone(Task t, AppViewModel viewModel) {
@@ -235,7 +234,8 @@ public class TaskListRenderer {
 
         TaskHelper.toggleTaskCloseDate(t);
 
-        viewModel.updateTaskMap();
+        EventQueue<Event> eq = EventQueues.lookup(MainContainerController.REDRAW_CONTAINER, EventQueues.DESKTOP, true);
+        eq.publish(new Event("onRefresh", null, null));
     }
 
 
@@ -250,6 +250,7 @@ public class TaskListRenderer {
 
         SubTaskHelper.toggleSubTaskCloseDate(t);
 
-        viewModel.updateTaskMap();
+        EventQueue<Event> eq = EventQueues.lookup(MainContainerController.REDRAW_CONTAINER, EventQueues.DESKTOP, true);
+        eq.publish(new Event("onRefresh", null, null));
     }
 }

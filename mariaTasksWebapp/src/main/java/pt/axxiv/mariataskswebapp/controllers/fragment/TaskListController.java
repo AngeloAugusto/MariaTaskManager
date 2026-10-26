@@ -10,6 +10,7 @@ import org.zkoss.zk.ui.select.annotation.Wire;
 import org.zkoss.zul.Button;
 import org.zkoss.zul.Label;
 import org.zkoss.zul.Vlayout;
+import pt.axxiv.mariatasks.connection.dao.TaskDAO;
 import pt.axxiv.mariataskswebapp.AppViewModel;
 import pt.axxiv.mariataskswebapp.renderer.TaskListRenderer;
 
@@ -38,15 +39,16 @@ public class TaskListController extends SelectorComposer<Vlayout> {
             return;
         }
 
-        viewModel.updateTaskMap();
+        EventQueue<Event> eq = EventQueues.lookup(MainContainerController.REDRAW_CONTAINER, EventQueues.DESKTOP, true);
+        eq.publish(new Event("onRefresh", null, null));
 
         lbSectionTitle.setValue(viewModel.getSelectedSection().getTitle());
-        TaskListRenderer.generateTaskList(taskList, viewModel, viewModel.getTasksForSelectedSection(), false);
+        TaskListRenderer.generateTaskList(taskList, viewModel, new TaskDAO().findAllBySection(viewModel.getSelectedSection().getId()), false);
 
-        EventQueue<Event> eq = EventQueues.lookup(UPDATE_LIST, EventQueues.DESKTOP, true);
-        eq.subscribe(event -> {
+        EventQueue<Event> eqUpdate = EventQueues.lookup(UPDATE_LIST, EventQueues.DESKTOP, true);
+        eqUpdate.subscribe(event -> {
             lbSectionTitle.setValue(viewModel.getSelectedSection().getTitle());
-            TaskListRenderer.generateTaskList(taskList, viewModel, viewModel.getTasksForSelectedSection(), false);
+            TaskListRenderer.generateTaskList(taskList, viewModel, new TaskDAO().findAllBySection(viewModel.getSelectedSection().getId()), false);
         });
         EventQueue<Event> eqBtCreate = EventQueues.lookup(UPDATE_BTCREATE_CLASS, EventQueues.DESKTOP, true);
         eqBtCreate.subscribe(event -> {

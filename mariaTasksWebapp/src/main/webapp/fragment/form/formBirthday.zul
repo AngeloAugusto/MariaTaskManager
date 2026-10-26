@@ -1,0 +1,24 @@
+<zk>
+    <vlayout id="formBirthday" apply="pt.axxiv.mariataskswebapp.controllers.fragment.FormBirthdayController">
+        <textbox id="txName" placeholder="Name"/>
+        <datebox id="dbBirthday" format="dd/MM"/>
+
+        <separator/>
+
+        <hbox spacing="30px" pack="center" width="100%">
+            <button id="btDeleteBirthday" sclass="save-btn" iconSclass="z-icon-trash" visible="false"/>
+            <button id="btSaveNewBirthday" sclass="save-btn" iconSclass="z-icon-check"/>
+        </hbox>
+        <separator/>
+
+        <popup id="ppConfirmDeletionBirthday" sclass="add-section" width="300px">
+            <label sclass="popupText" value="Are you sure you want to delete this birthday?" />
+            <separator/>
+            <hbox spacing="30px" pack="center" width="100%">
+                <button id="btBirthdayNo" sclass="add-btn rotate" iconSclass="z-icon-plus"/>
+                <button id="btBirthdayYes" sclass="save-btn" iconSclass="z-icon-check"/>
+            </hbox>
+        </popup>
+
+    </vlayout>
+</zk>

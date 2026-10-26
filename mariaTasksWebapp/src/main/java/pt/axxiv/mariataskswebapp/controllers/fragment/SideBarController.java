@@ -152,7 +152,7 @@ public class SideBarController extends SelectorComposer<Div> {
 
             viewModel.updateWindowTitle();
 
-            EventQueue<Event> eq = EventQueues.lookup(TaskListController.UPDATE_LIST, EventQueues.DESKTOP, true);
+            EventQueue<Event> eq = EventQueues.lookup(MainContainerController.REDRAW_CONTAINER, EventQueues.DESKTOP, true);
             eq.publish(new Event("onRefresh", null, null));
 
             editSectionTitle=false;
@@ -162,7 +162,7 @@ public class SideBarController extends SelectorComposer<Div> {
             section = new SectionDAO().insert(section);
 
             viewModel.getUserSections().add(section);
-            viewModel.addSectionToMap(section);
+            generateSectionList();
         }
 
         txSection.setValue("");
@@ -201,7 +201,8 @@ public class SideBarController extends SelectorComposer<Div> {
                 viewModel.updateWindowTitle();
 
                 generateSectionList();
-                EventQueue<Event> eq = EventQueues.lookup(TaskListController.UPDATE_LIST, EventQueues.DESKTOP, true);
+
+                EventQueue<Event> eq = EventQueues.lookup(MainContainerController.REDRAW_CONTAINER, EventQueues.DESKTOP, true);
                 eq.publish(new Event("onRefresh", null, null));
             });
             menuItems.appendChild(bt);
@@ -302,7 +303,8 @@ public class SideBarController extends SelectorComposer<Div> {
         viewModel.setSelectedSection(viewModel.getUserSections().getFirst());
         viewModel.updateWindowTitle();
 
-        viewModel.updateTaskMap();
+        EventQueue<Event> eq = EventQueues.lookup(MainContainerController.REDRAW_CONTAINER, EventQueues.DESKTOP, true);
+        eq.publish(new Event("onRefresh", null, null));
 
         ppConfirmDeletion.close();
 

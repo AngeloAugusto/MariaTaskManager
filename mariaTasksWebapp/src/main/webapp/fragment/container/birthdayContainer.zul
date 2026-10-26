@@ -1,0 +1,13 @@
+<zk>
+    <vlayout id="birthdayListContainer" apply="pt.axxiv.mariataskswebapp.controllers.fragment.BirthdayContainerController">
+        <hlayout sclass="task-header">
+            <hlayout spacing="7px" sclass="z-valign-middle">
+                <label id="lbSectionTitle" sclass="section-title"/>
+                <button id="btEditTitleSection" sclass="add-btn" iconSclass="z-icon-pencil"/>
+                <button id="btDeleteSection" sclass="add-btn" iconSclass="z-icon-trash-o "/>
+            </hlayout>
+            <button id="btCreateBirthDay" sclass="add-btn" iconSclass="z-icon-plus"/>
+        </hlayout>
+        <div id="birthdayList" hflex="1" sclass="birthday-list"/>
+    </vlayout>
+</zk>

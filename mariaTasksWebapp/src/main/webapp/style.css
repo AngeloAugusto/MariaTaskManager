@@ -600,3 +600,114 @@
 	cursor: pointer;
 	margin: 0;
 }
+
+
+
+
+
+
+/* Make the container a flexbox that wraps cards */
+.birthday-list {
+	display: flex;
+	flex-wrap: wrap;
+	align-content: flex-start;
+	gap: 16px;
+	padding: 16px;
+	overflow-y: auto;
+	box-sizing: border-box;
+}
+
+/* Each card */
+.birthday-card {
+	flex: 0 0 auto;
+	width: 220px;
+	min-height: 140px;
+	border-radius: 12px;
+	padding: 16px;
+	background: #242526;
+	border: 2px solid white;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	box-sizing: border-box;
+}
+
+/* Card content */
+.birthday-card .birthday-name {
+	font-size: 20px;
+	font-weight: 900;
+	color: white;
+	text-align: center;
+	word-break: break-word;
+}
+
+.birthday-card .birthday-date {
+	font-size: 17px;
+	color: grey;
+	margin-top: 8px;
+	text-align: center;
+}
+
+/* Today's birthday card - subtle glowing border */
+.birthday-card.birthday-today {
+	border: 2px solid #ffd700;
+	box-shadow:
+			0 0 4px rgba(255, 215, 0, 0.4),
+			0 0 8px rgba(255, 215, 0, 0.2),
+			inset 0 0 4px rgba(255, 215, 0, 0.1);
+	animation: birthday-glow 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes birthday-glow {
+	from {
+		box-shadow:
+				0 0 3px rgba(255, 215, 0, 0.3),
+				0 0 6px rgba(255, 215, 0, 0.15),
+				inset 0 0 3px rgba(255, 215, 0, 0.08);
+		border-color: #ffd700;
+	}
+	to {
+		box-shadow:
+				0 0 6px rgba(255, 215, 0, 0.55),
+				0 0 12px rgba(255, 215, 0, 0.3),
+				inset 0 0 6px rgba(255, 215, 0, 0.15);
+		border-color: #ffe45c;
+	}
+}
+
+.birthday-card.birthday-today .birthday-name {
+	color: white;
+}
+
+.birthday-card.birthday-today .birthday-date {
+	color: #ccc;
+}
+
+.birthday-card.birthday-today {
+	position: relative;
+	overflow: hidden;
+}
+
+.confetti-container {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	overflow: hidden;
+	z-index: 2;
+}
+
+.confetti-piece {
+	position: absolute;
+	top: -10px;
+	border-radius: 1px;
+	animation-name: confetti-fall;
+	animation-timing-function: linear;
+	animation-iteration-count: infinite;
+	will-change: transform;
+}
+
+@keyframes confetti-fall {
+	0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+	100% { transform: translateY(160px) rotate(720deg); opacity: 0.2; }
+}

@@ -177,7 +177,8 @@ public class FormTaskController extends SelectorComposer<Vlayout> {
             subTasks = new ArrayList<>();
         }
 
-        viewModel.updateTaskMap();
+        EventQueue<Event> eq = EventQueues.lookup(MainContainerController.REDRAW_CONTAINER, EventQueues.DESKTOP, true);
+        eq.publish(new Event("onRefresh", null, null));
 
         closeNewTaskWindow();
     }
@@ -444,11 +445,11 @@ public class FormTaskController extends SelectorComposer<Vlayout> {
 
     @Listen("onClick = #btTaskYes")
     public void onClickbtTaskYes(Event e) {
-        viewModel.removeTaskFromMap(viewModel.getEditingTask());
 
         new TaskDAO().delete(viewModel.getEditingTask().getId());
         viewModel.setEditingTask(null);
-        viewModel.updateTaskMap();
+        EventQueue<Event> eq = EventQueues.lookup(MainContainerController.REDRAW_CONTAINER, EventQueues.DESKTOP, true);
+        eq.publish(new Event("onRefresh", null, null));
 
         ppConfirmDeletionTask.close();
         closeNewTaskWindow();
