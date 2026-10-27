@@ -43,12 +43,12 @@ public class TaskListController extends SelectorComposer<Vlayout> {
         eq.publish(new Event("onRefresh", null, null));
 
         lbSectionTitle.setValue(viewModel.getSelectedSection().getTitle());
-        TaskListRenderer.generateTaskList(taskList, viewModel, new TaskDAO().findAllBySection(viewModel.getSelectedSection().getId()), false);
+        TaskListRenderer.generateTaskList(taskList, viewModel, new TaskDAO().findAllToShowOnSection(viewModel.getCurrentUser().getId(), viewModel.getSelectedSection()), false);
 
         EventQueue<Event> eqUpdate = EventQueues.lookup(UPDATE_LIST, EventQueues.DESKTOP, true);
         eqUpdate.subscribe(event -> {
             lbSectionTitle.setValue(viewModel.getSelectedSection().getTitle());
-            TaskListRenderer.generateTaskList(taskList, viewModel, new TaskDAO().findAllBySection(viewModel.getSelectedSection().getId()), false);
+            TaskListRenderer.generateTaskList(taskList, viewModel, new TaskDAO().findAllToShowOnSection(viewModel.getCurrentUser().getId(), viewModel.getSelectedSection()), false);
         });
         EventQueue<Event> eqBtCreate = EventQueues.lookup(UPDATE_BTCREATE_CLASS, EventQueues.DESKTOP, true);
         eqBtCreate.subscribe(event -> {

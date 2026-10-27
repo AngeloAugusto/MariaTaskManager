@@ -165,36 +165,69 @@ public class TaskDAO {
 	}
 
 
-    public List<Task> findAllClosedTodayByUser(ObjectId userId) {
-        List<Task> tasks = new ArrayList<>();
+	public List<Task> findAllClosedTodayByUser(ObjectId userId) {
+		List<Task> tasks = new ArrayList<>();
 
-        // Start of today
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        Date startOfDay = cal.getTime();
+		// Start of today
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		Date startOfDay = cal.getTime();
 
-        // Start of tomorrow
-        cal.add(Calendar.DAY_OF_MONTH, 1);
-        Date startOfNextDay = cal.getTime();
+		// Start of tomorrow
+		cal.add(Calendar.DAY_OF_MONTH, 1);
+		Date startOfNextDay = cal.getTime();
 
-        for (Document doc : collection.find(and(
-                gte(TaskFields.CLOSE_DATE, startOfDay),
-                lt(TaskFields.CLOSE_DATE, startOfNextDay),
-                eq(TaskFields.OWNER, userId)
-        ))) {
-            Task task = createFromDocument(doc);
+		for (Document doc : collection.find(and(
+				gte(TaskFields.CLOSE_DATE, startOfDay),
+				lt(TaskFields.CLOSE_DATE, startOfNextDay),
+				eq(TaskFields.OWNER, userId)
+		))) {
+			Task task = createFromDocument(doc);
 
-            if (task.getStartDate() == null || !task.getStartDate().after(new Date())) {
-                tasks.add(task);
-            }
-        }
+			if (task.getStartDate() == null || !task.getStartDate().after(new Date())) {
+				tasks.add(task);
+			}
+		}
 
-        Collections.sort(tasks, Collections.reverseOrder());
-        return tasks;
-    }
+		Collections.sort(tasks, Collections.reverseOrder());
+		return tasks;
+	}
+
+
+	public List<Task> findAllClosedTodayByUserAndSection(ObjectId userId, ObjectId sectionId) {
+		List<Task> tasks = new ArrayList<>();
+
+		// Start of today
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		Date startOfDay = cal.getTime();
+
+		// Start of tomorrow
+		cal.add(Calendar.DAY_OF_MONTH, 1);
+		Date startOfNextDay = cal.getTime();
+
+		for (Document doc : collection.find(and(
+				gte(TaskFields.CLOSE_DATE, startOfDay),
+				lt(TaskFields.CLOSE_DATE, startOfNextDay),
+				eq(TaskFields.OWNER, userId),
+				eq(TaskFields.SECTION, sectionId)
+		))) {
+			Task task = createFromDocument(doc);
+
+			if (task.getStartDate() == null || !task.getStartDate().after(new Date())) {
+				tasks.add(task);
+			}
+		}
+
+		Collections.sort(tasks, Collections.reverseOrder());
+		return tasks;
+	}
 
 
     public List<Task> findAllOpenByUserAndSection(Section section, ObjectId userId) {
@@ -270,6 +303,15 @@ public class TaskDAO {
         Collections.sort(tasks, Collections.reverseOrder());
         return tasks;
     }
+
+	public List<Task> findAllToShowOnSection(ObjectId userId, Section section){
+		List<Task> selectedTasks = new ArrayList<>();
+
+		selectedTasks.addAll(this.findAllOpenByUserAndSection(section, userId));
+		selectedTasks.addAll(this.findAllClosedTodayByUserAndSection(userId, section.getId()));
+
+		return selectedTasks;
+	}
 
     public List<Task> findAllClosed() {
         List<Task> tasks = new ArrayList<>();
