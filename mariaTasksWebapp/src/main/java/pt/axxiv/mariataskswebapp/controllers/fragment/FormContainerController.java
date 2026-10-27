@@ -56,30 +56,34 @@ public class FormContainerController extends SelectorComposer<Vlayout>  {
     private void closeWindow() {
         String sclass = formContainer.getSclass();
         if (sclass.contains("open")) {
-            if(viewModel.getSelectedSection().getType().equals(SectionType.TASKS)) {
-                icFromBirthday.setVisible(false);
-                icFromTask.setVisible(true);
-                EventQueue<Event> eq = EventQueues.lookup(FormTaskController.CLOSE_FORM, EventQueues.DESKTOP, true);
-                eq.publish(new Event("onRefresh", null, null));
-            } else if(viewModel.getSelectedSection().getType().equals(SectionType.BIRTHDAYS)){
+            if(viewModel.getSelectedSection().getType().equals(SectionType.BIRTHDAYS)){
                 icFromBirthday.setVisible(true);
                 icFromTask.setVisible(false);
                 EventQueue<Event> eq = EventQueues.lookup(FormBirthdayController.CLOSE_FORM, EventQueues.DESKTOP, true);
+                eq.publish(new Event("onRefresh", null, null));
+            } else {
+
+                // Default Tasks
+                icFromBirthday.setVisible(false);
+                icFromTask.setVisible(true);
+                EventQueue<Event> eq = EventQueues.lookup(FormTaskController.CLOSE_FORM, EventQueues.DESKTOP, true);
                 eq.publish(new Event("onRefresh", null, null));
             }
         }
     }
 
     private void openWindow() {
-        if(viewModel.getSelectedSection().getType().equals(SectionType.TASKS)) {
-            icFromBirthday.setVisible(false);
-            icFromTask.setVisible(true);
-            EventQueue<Event> eq = EventQueues.lookup(FormTaskController.OPEN_FORM, EventQueues.DESKTOP, true);
-            eq.publish(new Event("onRefresh", null, null));
-        } else if(viewModel.getSelectedSection().getType().equals(SectionType.BIRTHDAYS)){
+        if(viewModel.getSelectedSection().getType().equals(SectionType.BIRTHDAYS)){
             icFromBirthday.setVisible(true);
             icFromTask.setVisible(false);
             EventQueue<Event> eq = EventQueues.lookup(FormBirthdayController.OPEN_FORM, EventQueues.DESKTOP, true);
+            eq.publish(new Event("onRefresh", null, null));
+        } else {
+
+            // Default Tasks
+            icFromBirthday.setVisible(false);
+            icFromTask.setVisible(true);
+            EventQueue<Event> eq = EventQueues.lookup(FormTaskController.OPEN_FORM, EventQueues.DESKTOP, true);
             eq.publish(new Event("onRefresh", null, null));
         }
     }
@@ -91,27 +95,31 @@ public class FormContainerController extends SelectorComposer<Vlayout>  {
     private void toggleNewTaskWindow() {
         String sclass = formContainer.getSclass();
         if (sclass.contains("open")) {
-            if(viewModel.getSelectedSection().getType().equals(SectionType.TASKS)) {
-                icFromBirthday.setVisible(false);
-                icFromTask.setVisible(true);
-                EventQueue<Event> eq = EventQueues.lookup(FormTaskController.CLOSE_FORM, EventQueues.DESKTOP, true);
-                eq.publish(new Event("onRefresh", null, null));
-            } else if(viewModel.getSelectedSection().getType().equals(SectionType.BIRTHDAYS)){
+            if(viewModel.getSelectedSection().getType().equals(SectionType.BIRTHDAYS)){
                 icFromBirthday.setVisible(true);
                 icFromTask.setVisible(false);
                 EventQueue<Event> eq = EventQueues.lookup(FormBirthdayController.CLOSE_FORM, EventQueues.DESKTOP, true);
                 eq.publish(new Event("onRefresh", null, null));
-            }
-        } else {
-            if(viewModel.getSelectedSection().getType().equals(SectionType.TASKS)) {
+            } else {
+
+                // Default Tasks
                 icFromBirthday.setVisible(false);
                 icFromTask.setVisible(true);
-                EventQueue<Event> eq = EventQueues.lookup(FormTaskController.OPEN_FORM, EventQueues.DESKTOP, true);
+                EventQueue<Event> eq = EventQueues.lookup(FormTaskController.CLOSE_FORM, EventQueues.DESKTOP, true);
                 eq.publish(new Event("onRefresh", null, null));
-            } else if(viewModel.getSelectedSection().getType().equals(SectionType.BIRTHDAYS)){
+            }
+        } else {
+            if(viewModel.getSelectedSection().getType().equals(SectionType.BIRTHDAYS)){
                 icFromBirthday.setVisible(true);
                 icFromTask.setVisible(false);
                 EventQueue<Event> eq = EventQueues.lookup(FormBirthdayController.OPEN_FORM, EventQueues.DESKTOP, true);
+                eq.publish(new Event("onRefresh", null, null));
+            } else {
+
+                // Default Tasks
+                icFromBirthday.setVisible(false);
+                icFromTask.setVisible(true);
+                EventQueue<Event> eq = EventQueues.lookup(FormTaskController.OPEN_FORM, EventQueues.DESKTOP, true);
                 eq.publish(new Event("onRefresh", null, null));
             }
         }

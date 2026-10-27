@@ -46,17 +46,18 @@ public class MainContainerController extends SelectorComposer<Vlayout> {
         EventQueue<Event> eqClose = EventQueues.lookup(FormContainerController.CLOSE_VIEW, EventQueues.DESKTOP, true);
         eqClose.publish(new Event("onRefresh", null, null));
 
-        if(viewModel.getSelectedSection().getType().equals(SectionType.TASKS)){
-            icTaskContainer.setVisible(true);
-            icBirthdayContainer.setVisible(false);
-
-            EventQueue<Event> eq = EventQueues.lookup(TaskListController.UPDATE_LIST, EventQueues.DESKTOP, true);
-            eq.publish(new Event("onRefresh", null, null));
-        } else if(viewModel.getSelectedSection().getType().equals(SectionType.BIRTHDAYS)){
+        if(viewModel.getSelectedSection().getType().equals(SectionType.BIRTHDAYS)){
             icTaskContainer.setVisible(false);
             icBirthdayContainer.setVisible(true);
 
             EventQueue<Event> eq = EventQueues.lookup(BirthdayContainerController.UPDATE_LIST, EventQueues.DESKTOP, true);
+            eq.publish(new Event("onRefresh", null, null));
+        } else {
+            // Default TASKS
+            icTaskContainer.setVisible(true);
+            icBirthdayContainer.setVisible(false);
+
+            EventQueue<Event> eq = EventQueues.lookup(TaskListController.UPDATE_LIST, EventQueues.DESKTOP, true);
             eq.publish(new Event("onRefresh", null, null));
         }
     }
